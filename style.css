@@ -433,3 +433,27 @@ h1 {
     color: #374151;
 }
 
+.admin-link {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+
+    background: #9b0035;
+    color: white;
+
+    padding: 12px 18px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+
+    z-index: 1000;
+}
+
+.admin-link:hover {
+    background: #7a002a;
+}
+
