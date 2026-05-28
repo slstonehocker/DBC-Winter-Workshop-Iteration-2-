@@ -434,7 +434,8 @@ h1 {
 }
 
 .admin-link {
-    position: fixed;
+    position: absolute;
+
     top: 20px;
     right: 20px;
 
@@ -450,10 +451,15 @@ h1 {
     font-family: 'Montserrat', sans-serif;
     font-weight: bold;
 
-    z-index: 1000;
+    z-index: 9999;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+
+    transition: 0.2s ease;
 }
 
 .admin-link:hover {
     background: #7a002a;
-}
 
+    transform: translateY(-2px);
+}
