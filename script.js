@@ -28,7 +28,11 @@ function displayClassCatalog() {
     const catalog = document.getElementById("classCatalog");
 
     const branches = [
-        ...new Set(allClasses.map(c => c.branch).filter(Boolean))
+        ...new Set(
+            allClasses
+                .map(c => c.branch.trim())
+                .filter(Boolean)
+        )
     ];
 
     let html = "";
@@ -39,7 +43,7 @@ function displayClassCatalog() {
         html += `<h2 class="branch-title">${branch}</h2>`;
 
         const branchClasses =
-            allClasses.filter(c => c.branch === branch);
+            allClasses.filter(c => c.branch.trim() === branch);
 
         html += `<div class="branch-grid">`;
 
