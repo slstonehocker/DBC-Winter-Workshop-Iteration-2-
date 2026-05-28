@@ -463,3 +463,28 @@ h1 {
 
     transform: translateY(-2px);
 }
+
+.sheet-link {
+    position: absolute;
+
+    top: 80px;
+    right: 50px;
+
+    background: #9b0035;
+    color: white;
+
+    padding: 12px 18px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+
+    z-index: 999;
+}
+
+.sheet-link:hover {
+    background: #16203a;
+}
