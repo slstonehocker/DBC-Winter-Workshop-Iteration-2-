@@ -152,7 +152,7 @@ function registerEmployee() {
     });
 
     setTimeout(function () {
-        window.location.replace("confirmation.html");
+        window.location.replace("Confirmation.html");
     }, 1500);
 }
 
