@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Class Entry</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    
+    <!--
+    <script>
+    const password = prompt("Enter admin password:");
+
+    if (password !== "DBCIrrigation!") {
+        alert("Incorrect password.");
+        window.location.href = "index.html";
+    }
+</script>
+-->
+
+<div class="classes-box">
+
+    <h1>ADMIN CLASS ENTRY/EDIT</h1>
+    
+    <p class="subtitle">
+    Employees will use this information to sign up for classes. Please make sure it is correct. </p>
+
+    <h2>Add New Class</h2>
+
+    <label for="adminBranch">Branch</label>
+    <input type="text" id="adminBranch" placeholder="Denver">
+
+    <label for="adminClass">Class Name</label>
+    <input type="text" id="adminClass" placeholder="Lighting Design">
+
+    <label for="adminDate">Date</label>
+    <input type="text" id="adminDate" placeholder="MM/DD/YYYY">
+
+    <label for="adminTime">Time</label>
+    <input type="text" id="adminTime" placeholder="9-11 AM">
+
+    <label for="adminDescription">Description</label>
+    <textarea id="adminDescription" placeholder="Enter class description"></textarea>
+    
+     <label for="adminTeacher">Instructor</label>
+    <input type="text" id="adminTeacher" placeholder="Who is teaching the class?">
+    
+    <label for="adminCapacity">Seat Capacity</label>
+    <input type="number" id="adminCapacity" placeholder="20">
+    
+     <label for="adminLunch">Is lunch provided?</label>
+    <input type="text" id="adminLunch" placeholder="Yes/No">
+
+    
+     <label for="adminAddress">Address</label>
+    <input type="text" id="adminAddress" placeholder="123 Main St, Denver, CO">
+
+
+    <button type="button" onclick="addClass()">Add Class</button>
+
+    <hr>
+
+    <h2>Edit or Delete Existing Class</h2>
+
+   <label for="existingClass">
+    Select Existing Class
+</label>
+
+<select
+    id="existingClass"
+    onchange="loadClassForEditing()"
+>
+   
+    <option value="">
+        Loading classes...
+    </option>
+</select>
+
+  <button type="button" onclick="updateClass()">
+    Update Selected Class
+</button>
+
+    <button type="button" onclick="deleteClass()">Delete Selected Class</button>
+
+</div>
+
+<script>
+    const script = document.createElement("script");
+    script.src = "script.js?v=" + new Date().getTime();
+    document.body.appendChild(script);
+</script>
+    
+</body>
+</html>
