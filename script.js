@@ -351,6 +351,34 @@ function deleteClass() {
     }, 1500);
 }
 
+function downloadRoster() {
+
+    if (!adminSelectedClass) {
+        alert("Please select a class first.");
+        return;
+    }
+
+    const sheetName =
+        cleanSheetName(
+            adminSelectedClass.branch +
+            " - " +
+            adminSelectedClass.name
+        );
+
+    const rosterUrl =
+        SCRIPT_URL +
+        "?downloadRoster=true&sheetName=" +
+        encodeURIComponent(sheetName);
+
+    window.open(rosterUrl, "_blank");
+}
+
+function cleanSheetName(name) {
+    return name
+        .replace(/[\\\/\?\*\[\]\:]/g, "")
+        .substring(0, 99);
+}
+
 function clearAdminForm() {
     const fields = [
         "adminBranch",
