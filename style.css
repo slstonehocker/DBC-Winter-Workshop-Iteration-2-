@@ -285,7 +285,7 @@ h1 {
 .branch-title {
     font-family: 'Montserrat', sans-serif;
     font-size: 32px;
-    color: #1f2b4d;
+    color: #b7342b ;
     margin-top: 40px;
     margin-bottom: 20px;
 }
@@ -487,4 +487,23 @@ h1 {
 
 .sheet-link:hover {
     background: #16203a;
+}
+
+.map-button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 18px;
+    padding: 14px;
+    background: #94792D ;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+}
+
+.map-button:hover {
+    background:  #DAC7A1;
 }

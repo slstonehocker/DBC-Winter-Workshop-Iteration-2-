@@ -62,9 +62,16 @@ function displayClassCatalog() {
                     <p><strong>Lunch:</strong> ${classItem.lunch}</p>
                     <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
 
-                    <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
-                        Register
-                    </button>
+<a
+    class="map-button"
+    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
+    target="_blank">
+    View Branch Map
+</a>
+
+<button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
+    Register
+</button>
                 </div>
             `;
         }
@@ -420,10 +427,13 @@ function formatDisplayDate(dateString) {
     return month + "/" + day + "/" + year;
 }
 
+
+
 function startPage() {
     loadClasses();
     loadAdminClasses();
 }
+
 
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startPage);
