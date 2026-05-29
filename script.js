@@ -73,7 +73,7 @@ function displayClassCatalog() {
     Register
 </button>
                 </div>
-            `;
+     `;
         }
 
         html += `</div>`;
@@ -427,6 +427,39 @@ function formatDisplayDate(dateString) {
     return month + "/" + day + "/" + year;
 }
 
+function searchClasses() {
+
+    const searchTerm =
+        document.getElementById("classSearch")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const branchTitles =
+        document.querySelectorAll(".branch-title");
+
+    branchTitles.forEach(function(title) {
+
+        const branchName =
+            title.textContent.toLowerCase();
+
+        const branchGrid =
+            title.nextElementSibling;
+
+        if (
+            searchTerm === "" ||
+            branchName.includes(searchTerm)
+        ) {
+            title.style.display = "";
+            branchGrid.style.display = "grid";
+        }
+        else {
+            title.style.display = "none";
+            branchGrid.style.display = "none";
+        }
+
+    });
+}
 
 
 function startPage() {

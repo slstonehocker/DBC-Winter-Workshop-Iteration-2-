@@ -507,3 +507,19 @@ h1 {
 .map-button:hover {
     background:  #DAC7A1;
 }
+
+.search-box {
+    width: 80%;
+    max-width: 700px;
+    margin: 0 auto 40px auto;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: 'Montserrat', sans-serif;
+    box-sizing: border-box;
+}
