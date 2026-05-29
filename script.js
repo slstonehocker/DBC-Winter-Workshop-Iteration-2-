@@ -72,9 +72,16 @@ function displayClassCatalog() {
                     </p>
                     <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
 
-                    <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
-                        Register
-                    </button>
+<a
+    class="map-button"
+    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
+    target="_blank">
+    View Branch Map
+</a>
+
+<button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
+    Register
+</button>
                 </div>
             `;
         }
