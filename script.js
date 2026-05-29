@@ -30,10 +30,12 @@ function displayClassCatalog() {
     const branches = [
         ...new Set(
             allClasses
-                .map(c => c.branch.trim())
+                .map(c => (c.branch || "").trim())
                 .filter(Boolean)
         )
-    ];
+    ].sort(function(a, b) {
+        return a.localeCompare(b);
+    });
 
     let html = "";
 
@@ -43,7 +45,13 @@ function displayClassCatalog() {
         html += `<h2 class="branch-title">${branch}</h2>`;
 
         const branchClasses =
-            allClasses.filter(c => c.branch.trim() === branch);
+            allClasses
+                .filter(c => (c.branch || "").trim() === branch)
+                .sort(function(a, b) {
+                    return (a.name || "").trim().localeCompare(
+                        (b.name || "").trim()
+                    );
+                });
 
         html += `<div class="branch-grid">`;
 
@@ -59,21 +67,16 @@ function displayClassCatalog() {
                     <p><strong>Date:</strong> ${formatDisplayDate(classItem.date)}</p>
                     <p><strong>Time:</strong> ${classItem.time}</p>
                     <p><strong>Instructor:</strong> ${classItem.teacher}</p>
-                    <p><strong>Lunch:</strong> ${classItem.lunch}</p>
+                    <p class="${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
+                        ${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
+                    </p>
                     <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
 
-<a
-    class="map-button"
-    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
-    target="_blank">
-    View Branch Map
-</a>
-
-<button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
-    Register
-</button>
+                    <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
+                        Register
+                    </button>
                 </div>
-     `;
+            `;
         }
 
         html += `</div>`;
