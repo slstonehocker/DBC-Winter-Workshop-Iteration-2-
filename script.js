@@ -36,6 +36,17 @@ function displayClassCatalog() {
     ].sort(function(a, b) {
         return a.localeCompare(b);
     });
+    
+    if (branches.length === 0) {
+    catalog.innerHTML = `
+        <div class="empty-state">
+            <h2>No workshops are currently available.</h2>
+            <p>Please check back soon for upcoming classes.</p>
+        </div>
+    `;
+    return;
+}
+    
 
     let html = "";
 

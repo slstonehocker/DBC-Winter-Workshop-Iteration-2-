@@ -523,3 +523,116 @@ h1 {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
 }
+
+.class-catalog {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto 60px auto;
+}
+
+.branch-title {
+    color: #b7342b;
+    font-size: 34px;
+    margin-top: 45px;
+    margin-bottom: 20px;
+}
+
+.branch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 26px;
+}
+
+.class-card {
+    background: white;
+    border: 1px dashed #d6d6d6;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+
+.class-card h3 {
+    color: #b7342b;
+    font-size: 28px;
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.class-card p {
+    margin: 12px 0;
+    line-height: 1.5;
+}
+
+.class-card button,
+.map-button {
+    margin-top: 14px;
+}
+
+.map-button {
+    background: #a3862a;
+}
+
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.card-actions .map-button,
+.card-actions button {
+    margin-top: 0;
+}
+
+.search-box {
+    width: 80%;
+    max-width: 700px;
+    margin: 0 auto 45px auto;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 18px 22px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    font-size: 18px;
+    font-family: 'Montserrat', sans-serif;
+    box-sizing: border-box;
+    background: white;
+}
+
+@media (max-width: 700px) {
+    .class-catalog {
+        width: 92%;
+    }
+
+    .branch-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.empty-state {
+    width: 80%;
+    max-width: 900px;
+    margin: 60px auto;
+    background: white;
+    padding: 50px;
+    border-radius: 16px;
+    border: 1px dashed #d6d6d6;
+    text-align: center;
+}
+
+.empty-state h2 {
+    color: #b7342b;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #1f2b4d;
+    font-size: 18px;
+}
