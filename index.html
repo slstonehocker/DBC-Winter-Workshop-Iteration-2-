@@ -20,13 +20,10 @@
     </p>
 </div>
     
-    <div class="search-box">
-    <input
-        type="text"
-        id="classSearch"
-        placeholder="Search by branch"
-        oninput="searchClasses()"
-    >
+  <div class="search-box">
+    <select id="branchFilter" onchange="filterByBranch()">
+        <option value="">All Branches</option>
+    </select>
 </div>
 
 <div id="classCatalog" class="class-catalog">
@@ -46,10 +43,10 @@
 
         <hr>
 
-        <label for="name">Employee Name</label>
+        <label for="name">Name</label>
         <input type="text" id="name" placeholder="Full Name">
 
-        <label for="email">Employee Email</label>
+        <label for="email">Email</label>
         <input type="email" id="email" placeholder="Email">
 
         <label for="confirmEmail">Confirm Email</label>

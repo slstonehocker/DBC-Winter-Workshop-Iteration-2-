@@ -18,6 +18,7 @@ async function loadClasses() {
         allClasses = await response.json();
 
         displayClassCatalog();
+        populateBranchFilter();
     } catch (error) {
         console.error(error);
         catalog.innerHTML = "<p>Could not load classes. Please try again later.</p>";
@@ -482,6 +483,57 @@ function searchClasses() {
     });
 }
 
+function populateBranchFilter() {
+    const branchFilter = document.getElementById("branchFilter");
+
+    if (!branchFilter) {
+        return;
+    }
+
+    const branches = [
+        ...new Set(
+            allClasses
+                .map(c => (c.branch || "").trim())
+                .filter(Boolean)
+        )
+    ].sort();
+
+    branchFilter.innerHTML =
+        '<option value="">All Branches</option>';
+
+    for (let i = 0; i < branches.length; i++) {
+        const option = document.createElement("option");
+
+        option.value = branches[i];
+        option.textContent = branches[i];
+
+        branchFilter.appendChild(option);
+    }
+}
+
+function filterByBranch() {
+    const selectedBranch =
+        document.getElementById("branchFilter").value;
+
+    const branchTitles =
+        document.querySelectorAll(".branch-title");
+
+    branchTitles.forEach(function(title) {
+        const branchName = title.textContent.trim();
+        const branchGrid = title.nextElementSibling;
+
+        if (
+            selectedBranch === "" ||
+            branchName === selectedBranch
+        ) {
+            title.style.display = "";
+            branchGrid.style.display = "grid";
+        } else {
+            title.style.display = "none";
+            branchGrid.style.display = "none";
+        }
+    });
+}
 
 function startPage() {
     loadClasses();
