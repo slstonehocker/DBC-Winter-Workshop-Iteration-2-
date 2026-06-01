@@ -143,6 +143,7 @@ function registerEmployee() {
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const confirmEmail = document.getElementById("confirmEmail").value.trim();
+    const spotsRequested =  Number(document.getElementById("spotsRequested").value);
 
     if (name === "") {
         alert("Please enter your name.");
@@ -158,6 +159,14 @@ function registerEmployee() {
         alert("Emails do not match.");
         return;
     }
+    
+    if (
+    Number(selectedClass.seatsLeft) > 0 &&
+    spotsRequested > Number(selectedClass.seatsLeft)
+) {
+    alert("There are only " + selectedClass.seatsLeft + " seats left.");
+    return;
+}
 
     if (Number(selectedClass.seatsLeft) <= 0) {
         alert("This class is full. You will be added to the waitlist.");
@@ -175,7 +184,8 @@ function registerEmployee() {
         description: selectedClass.description,
         teacher: selectedClass.teacher,
         lunch: selectedClass.lunch,
-        capacity: selectedClass.capacity
+        capacity: selectedClass.capacity,
+        spotsRequested: spotsRequested
     };
 
     fetch(SCRIPT_URL, {
@@ -599,6 +609,8 @@ function removeRegistration() {
         return;
     }
 
+    const cancelId = dropdown.value;
+
     const confirmRemove =
         confirm("Remove this person from the class?");
 
@@ -611,15 +623,18 @@ function removeRegistration() {
         mode: "no-cors",
         body: JSON.stringify({
             type: "removeRegistration",
-            cancelId: dropdown.value
+            cancelId: cancelId
         })
     });
 
+    // Remove it from the dropdown immediately
+    dropdown.options[dropdown.selectedIndex].remove();
+
     setTimeout(function () {
-        alert("Registration removed.");
+        alert("Registration removed. Please check the Google Sheet.");
 
         loadRegistrationsForSelectedClass();
         loadAdminClasses();
 
-    }, 1500);
+    }, 2500);
 }
