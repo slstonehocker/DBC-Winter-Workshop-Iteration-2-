@@ -296,6 +296,8 @@ function loadClassForEditing() {
 
     document.getElementById("adminCapacity").value =
         adminSelectedClass.capacity || "";
+    
+    loadRegistrationsForSelectedClass();
 }
 
 function updateClass() {
@@ -545,4 +547,79 @@ if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startPage);
 } else {
     startPage();
+}
+
+async function loadRegistrationsForSelectedClass() {
+    const dropdown =
+        document.getElementById("registrationToRemove");
+
+    if (!dropdown || !adminSelectedClass) {
+        return;
+    }
+
+    dropdown.innerHTML =
+        '<option value="">Loading registrations...</option>';
+
+    const url =
+        SCRIPT_URL +
+        "?getRegistrations=true&branch=" +
+        encodeURIComponent(adminSelectedClass.branch) +
+        "&className=" +
+        encodeURIComponent(adminSelectedClass.name);
+
+    const response =
+        await fetch(url);
+
+    const registrations =
+        await response.json();
+
+    dropdown.innerHTML =
+        '<option value="">Select Registration</option>';
+
+    for (let i = 0; i < registrations.length; i++) {
+        const option =
+            document.createElement("option");
+
+        option.value =
+            registrations[i].cancelId;
+
+        option.textContent =
+            registrations[i].name + " - " + registrations[i].email;
+
+        dropdown.appendChild(option);
+    }
+}
+
+function removeRegistration() {
+    const dropdown =
+        document.getElementById("registrationToRemove");
+
+    if (!dropdown || dropdown.value === "") {
+        alert("Please select a registration to remove.");
+        return;
+    }
+
+    const confirmRemove =
+        confirm("Remove this person from the class?");
+
+    if (!confirmRemove) {
+        return;
+    }
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+            type: "removeRegistration",
+            cancelId: dropdown.value
+        })
+    });
+
+    setTimeout(function () {
+        alert("Registration removed.");
+
+        loadRegistrationsForSelectedClass();
+        loadAdminClasses();
+
+    }, 1500);
 }
