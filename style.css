@@ -636,3 +636,15 @@ h1 {
     color: #1f2b4d;
     font-size: 18px;
 }
+
+.waitlist-badge {
+    display: inline-block;
+    background: #9b0035;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 4px;
+}
