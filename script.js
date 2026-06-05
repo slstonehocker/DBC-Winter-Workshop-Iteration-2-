@@ -37,17 +37,16 @@ function displayClassCatalog() {
     ].sort(function(a, b) {
         return a.localeCompare(b);
     });
-    
+
     if (branches.length === 0) {
-    catalog.innerHTML = `
-        <div class="empty-state">
-            <h2>No workshops are currently available.</h2>
-            <p>Please check back soon for upcoming classes.</p>
-        </div>
-    `;
-    return;
-}
-    
+        catalog.innerHTML = `
+            <div class="empty-state">
+                <h2>No workshops are currently available.</h2>
+                <p>Please check back soon for upcoming classes.</p>
+            </div>
+        `;
+        return;
+    }
 
     let html = "";
 
@@ -74,26 +73,30 @@ function displayClassCatalog() {
                 <div class="class-card">
                     <h3>${classItem.name}</h3>
 
+                    ${Number(classItem.seatsLeft) <= 0 ? `<div class="waitlist-badge">Full • Waitlist: ${Number(classItem.waitlistCount) || 0}</div>` : ""}
+
                     <p>${classItem.description}</p>
 
                     <p><strong>Date:</strong> ${formatDisplayDate(classItem.date)}</p>
                     <p><strong>Time:</strong> ${classItem.time}</p>
                     <p><strong>Instructor:</strong> ${classItem.teacher}</p>
+
                     <p class="${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
                         ${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
                     </p>
+
                     <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
 
-<a
-    class="map-button"
-    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
-    target="_blank">
-    View Branch Map
-</a>
+                    <a
+                        class="map-button"
+                        href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
+                        target="_blank">
+                        View Branch Map
+                    </a>
 
-<button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
-    Register
-</button>
+                    <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
+                        Register
+                    </button>
                 </div>
             `;
         }
