@@ -146,7 +146,7 @@ function registerEmployee() {
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const confirmEmail = document.getElementById("confirmEmail").value.trim();
-    const spotsRequested =  Number(document.getElementById("spotsRequested").value);
+    const spotsRequested =  Number(document.getElementById("spotsRequested").value) || 1;
 
     if (name === "") {
         alert("Please enter your name.");
@@ -188,7 +188,7 @@ function registerEmployee() {
         teacher: selectedClass.teacher,
         lunch: selectedClass.lunch,
         capacity: selectedClass.capacity,
-        spotsRequested: spotsRequested
+        spotsRequested: spotsRequested,
     };
 
     fetch(SCRIPT_URL, {
