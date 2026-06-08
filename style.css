@@ -648,3 +648,15 @@ h1 {
     margin-bottom: 12px;
     margin-top: 4px;
 }
+
+.hidden-admin-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: default;
+}
+
+.hidden-admin-link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
