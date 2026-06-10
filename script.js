@@ -148,20 +148,21 @@ function registerEmployee() {
     const confirmEmail = document.getElementById("confirmEmail").value.trim();
     const spotsRequested =  Number(document.getElementById("spotsRequested").value) || 1;
 
-    if (name === "") {
+    if (name === ""){
         alert("Please enter your name.");
         return;
     }
 
-    if (email === "") {
-        alert("Please enter your email.");
+    if (email === ""){
+        alert("Please enter your email");
         return;
     }
-
-    if (email !== confirmEmail) {
-        alert("Emails do not match.");
-        return;
-    }
+    
+    
+  if (email !== confirmEmail){
+      alert("Emails don not match. Please try again");
+      return;
+  }
     
     if (
     Number(selectedClass.seatsLeft) > 0 &&
