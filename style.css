@@ -3,6 +3,7 @@ body {
     background: #f4f4f4;
 }
 
+/*creates div for class display*/
 .classes-box {
     width: 80%;
     max-width: 1400px;
@@ -18,6 +19,7 @@ body {
     border: 1px solid #ddd;
 }
 
+/*labels for class display*/
 .classes-box label {
     display: block;
 

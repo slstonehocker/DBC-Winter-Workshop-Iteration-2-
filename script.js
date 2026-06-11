@@ -1,3 +1,4 @@
+//load google script file
 const SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbz5ZuLfoXWVE8hoMukorze8-iWlFEE-IYh_UXXrkJE-HNSxuteB5q0wrBZkOesPnOnAWg/exec";
 
@@ -5,7 +6,7 @@ let allClasses = [];
 let selectedClassForRegistration = null;
 let adminSelectedClass = null;
 
-// PUBLIC CLASS CATALOG
+// class catalog shown on registration page 
 async function loadClasses() {
     const catalog = document.getElementById("classCatalog");
 
@@ -107,6 +108,7 @@ function displayClassCatalog() {
     catalog.innerHTML = html;
 }
 
+//pulls up branch class info in block
 function openRegistrationModal(classItem) {
     selectedClassForRegistration = classItem;
 
@@ -125,6 +127,7 @@ function openRegistrationModal(classItem) {
     document.getElementById("registrationModal").style.display = "block";
 }
 
+//close class detail block after clicking "X"
 function closeRegistrationModal() {
     document.getElementById("registrationModal").style.display = "none";
 
@@ -135,6 +138,7 @@ function closeRegistrationModal() {
     document.getElementById("confirmEmail").value = "";
 }
 
+//user fills in personal informatin to register for selected class
 function registerEmployee() {
     if (!selectedClassForRegistration) {
         alert("Please select a class.");
@@ -143,11 +147,14 @@ function registerEmployee() {
 
     const selectedClass = selectedClassForRegistration;
 
+    
+    //user enters inputs 
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const confirmEmail = document.getElementById("confirmEmail").value.trim();
     const spotsRequested =  Number(document.getElementById("spotsRequested").value) || 1;
 
+    //makes sure form isnt submitted with missing info
     if (name === ""){
         alert("Please enter your name.");
         return;
@@ -164,6 +171,7 @@ function registerEmployee() {
       return;
   }
     
+    
     if (
     Number(selectedClass.seatsLeft) > 0 &&
     spotsRequested > Number(selectedClass.seatsLeft)
@@ -176,6 +184,7 @@ function registerEmployee() {
         alert("This class is full. You will be added to the waitlist.");
     }
 
+    //stores employee information to be used in other functions 
     const employee = {
         type: "registration",
         name: name,
@@ -192,18 +201,21 @@ function registerEmployee() {
         spotsRequested: spotsRequested,
     };
 
+    
+    //stores infoarmtion on computer using the script as a "backend"
     fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify(employee)
     });
 
+    //loads confirmation page after 1.5 seconds 
     setTimeout(function () {
         window.location.replace("Confirmation.html");
     }, 1500);
 }
 
-// ADMIN FUNCTIONS
+//grabbing features from admin create class page
 function addClass() {
     const branch = document.getElementById("adminBranch").value.trim();
     const className = document.getElementById("adminClass").value.trim();
@@ -215,11 +227,13 @@ function addClass() {
     const lunch = document.getElementById("adminLunch").value.trim();
     const capacity = document.getElementById("adminCapacity").value.trim();
 
+    //makes ure no inputs are left empty
     if (branch === "" || className === "" || date === "" || time === "") {
         alert("Please fill out branch, class name, date, and time.");
         return;
     }
 
+    //groups together class info input by the admin throug hadmin page 
     const newClass = {
         type: "class",
         branch: branch,
@@ -233,12 +247,14 @@ function addClass() {
         capacity: capacity
     };
 
+    //grabbing from google script and pushing info to the google sheet 
     fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify(newClass)
     });
 
+//clear form once class is added and is on google sheet
     setTimeout(function () {
         alert("Class added. Please see updated Google Sheet");
         clearAdminForm();
@@ -246,6 +262,7 @@ function addClass() {
     }, 1500);
 }
 
+//loads existing classes on admin page to pick from to edit/delte/download
 async function loadAdminClasses() {
     const existingClassDropdown = document.getElementById("existingClass");
 
@@ -275,9 +292,11 @@ async function loadAdminClasses() {
     }
 }
 
+//pull classes from google sheet using scripts to show for editing 
 function loadClassForEditing() {
     const existingClassDropdown = document.getElementById("existingClass");
 
+    //when there are no classes existing 
     if (!existingClassDropdown || existingClassDropdown.value === "") {
         return;
     }
@@ -314,6 +333,7 @@ function loadClassForEditing() {
     loadRegistrationsForSelectedClass();
 }
 
+//update info on google sheet 
 function updateClass() {
     if (!adminSelectedClass) {
         alert("Please select a class to update.");
@@ -359,6 +379,7 @@ function updateClass() {
     }, 1500);
 }
 
+//delte a class. remove from class options and google sheet. removes created class tab
 function deleteClass() {
     if (!adminSelectedClass) {
         alert("Please select a class to delete.");
@@ -384,6 +405,7 @@ function deleteClass() {
         })
     });
 
+    //alerts class has been deleted 
     setTimeout(function () {
         alert("Class cancelled/deleted.");
 
@@ -400,6 +422,8 @@ function deleteClass() {
     }, 1500);
 }
 
+
+//download CSV file 
 function downloadRoster() {
 
     if (!adminSelectedClass) {
@@ -422,12 +446,14 @@ function downloadRoster() {
     window.open(rosterUrl, "_blank");
 }
 
+
 function cleanSheetName(name) {
     return name
         .replace(/[\\\/\?\*\[\]\:]/g, "")
         .substring(0, 99);
 }
 
+//clears admin inputs after functions are run 
 function clearAdminForm() {
     const fields = [
         "adminBranch",
@@ -450,7 +476,9 @@ function clearAdminForm() {
     }
 }
 
-// HELPERS
+
+
+//displays the date in a mm/dd/year format
 function formatDisplayDate(dateString) {
     const date = new Date(dateString);
 
@@ -465,6 +493,7 @@ function formatDisplayDate(dateString) {
     return month + "/" + day + "/" + year;
 }
 
+//allow search by branch on registration page
 function searchClasses() {
 
     const searchTerm =
@@ -499,6 +528,8 @@ function searchClasses() {
     });
 }
 
+
+//filters branches by the selected choice from dropdown 
 function populateBranchFilter() {
     const branchFilter = document.getElementById("branchFilter");
 
@@ -527,6 +558,7 @@ function populateBranchFilter() {
     }
 }
 
+//pull up classess only from selected branch
 function filterByBranch() {
     const selectedBranch =
         document.getElementById("branchFilter").value;
@@ -551,17 +583,44 @@ function filterByBranch() {
     });
 }
 
+
+//loads classes on registration page and form on the admin page 
 function startPage() {
     loadClasses();
     loadAdminClasses();
 }
 
-
+//loading page while classes load onto screen
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startPage);
 } else {
     startPage();
 }
+
+setInterval(function(){
+        if (document.getElementById("class catalog")){
+            loadClasses();
+        }
+    
+    if(document.getElementById("existing class")&& !adminSelectedClass){
+        loadAdminClasses();
+    }
+            },30000);
+
+
+
+
+
+////refresh every 30 seconds 
+//setInterval(function () {
+//    if (document.getElementById("classCatalog")) {
+//        loadClasses();
+//    }
+//
+//    if (document.getElementById("existingClass") && !adminSelectedClass) {
+//        loadAdminClasses();
+//    }
+//}, 30000);
 
 async function loadRegistrationsForSelectedClass() {
     const dropdown =
@@ -604,6 +663,7 @@ async function loadRegistrationsForSelectedClass() {
     }
 }
 
+//on admin page to select speciic registration and remove it from google sheet
 function removeRegistration() {
     const dropdown =
         document.getElementById("registrationToRemove");
@@ -631,7 +691,7 @@ function removeRegistration() {
         })
     });
 
-    // Remove it from the dropdown immediately
+    // Remove registration from the dropdown as an option 
     dropdown.options[dropdown.selectedIndex].remove();
 
     setTimeout(function () {

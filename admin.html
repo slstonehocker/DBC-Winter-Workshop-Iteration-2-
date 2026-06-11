@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Class Entry</title>
+ <!--grabs style info from csss file-->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    
+    <!--loads google sheet-->
      <a
     href="https://docs.google.com/spreadsheets/d/1ho8sNdXEAROHFPHTFDvMFfhpfFSWnmo-MfxPBIhjFlI/edit?gid=0#gid=0"
     target="_blank"
@@ -16,6 +17,7 @@
    Google Sheet
 </a>
     
+ <!--creates admin password. Should be made more secure-->
   <script>
     const adminPassword = prompt("Enter admin password:");
 
@@ -25,6 +27,8 @@
     }
 </script>
 
+ 
+ <!--loads set up for admin page and creates input-->
 <div class="classes-box">
 
     <h1>ADMIN CLASS ENTRY/EDIT PORTAL</h1>
@@ -68,9 +72,6 @@
     <hr>
 
  <hr>
-
-
- 
     <h2>Edit or Delete Existing Class</h2>
 
    <label for="existingClass">
@@ -89,7 +90,7 @@
         
         
       
-        
+    
  <h2>Remove Someone From Selected Class</h2>
 
 <label for="registrationToRemove">Select Registration</label>
@@ -106,6 +107,7 @@
 
 </div>
 
+ <!--loads info into script page and updates google sheet with class info-->
 <script>
     const script = document.createElement("script");
     script.src = "script.js?v=" + new Date().getTime();
