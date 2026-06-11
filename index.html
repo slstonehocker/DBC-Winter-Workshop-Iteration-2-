@@ -1,83 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop Registration</title>
-    <!--calls style sheet-->
-    <link rel="stylesheet" href="style.css">
+  <title>Delivery Calendar</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
- <!--Registration page setup-->
-<div class="page-header">
-  <h1>
-  Winter Workshop Registrat<a href="admin.html" class="hidden-admin-link">i</a>on
-</h1>
-    <p class="subtitle">
-        Select a class below to view details and register.
-    </p>
+  <h1>Sheridan Delivery Schedule Calendar</h1>
+
+  <div class="controls">
+    <button onclick="changeWeek(-1)">Previous Week</button>
+    <h2 id="weekTitle"></h2>
+    <button onclick="changeWeek(1)">Next Week</button>
+    <button onclick="goToToday()" id="todayBtn">Today</button>
+  </div>
+
+    <div class="search-bar">
+  <input
+    type="text"
+    id="searchOrder"
+    placeholder="Search Order Number"
+  >
+
+  <button onclick="searchOrder()">Search</button>
+
+  <button onclick="clearSearch()">Clear</button>
 </div>
+
+    <div class="search-bar my-deliveries-bar">
+  <input
+    type="text"
+        id="myDeliveriesName"
+    placeholder="Enter your name to see your deliveries"
+  >
+
+  <button onclick="showMyDeliveries()">My Deliveries</button>
+</div>
+
+  
+  <div id="myDeliveriesResults" class="my-deliveries hidden"></div>
+
+  <div id="calendar"></div>
     
-  <div class="search-box">
-    <select id="branchFilter" onchange="filterByBranch()">
-        <option value="">All Branches</option>
-    </select>
-</div>
 
-<div id="classCatalog" class="class-catalog">
-    <p>Loading classes...</p>
-</div>
+  <div id="popup" class="popup hidden">
+    <div class="popup-box">
+            <h2 id="popupTitle">Add Delivery</h2>
+      <p class="required-key"><span class="required-asterisk">*</span> = required field</p>
 
-    <!--creates popup where users fill in class information and save registration-->
-<div id="registrationModal" class="modal">
-    <div class="modal-content">
+      <label>Salesperson Name <span class="required-asterisk">*</span></label>
+      <input id="salespersonName" type="text">
 
-        <button type="button" class="close-button" onclick="closeRegistrationModal()">
-            &times;
-        </button>
+      <label>Salesperson Email <span class="required-asterisk">*</span></label>
+      <input id="salespersonEmail" type="text">
 
-        <h2 id="modalClassTitle"></h2>  
+      <label>Confirm Salesperson Email <span class="required-asterisk">*</span></label>
+      <input id="salespersonEmailConfirm" type="text">
 
-        <div id="modalClassDetails" class="modal-class-details"></div>
+      <label>Order Number <span class="required-asterisk">*</span></label>
+      <input id="orderNumber" type="text" placeholder="S0000000" maxlength="8">
 
-        <hr>
+      <label>Onsite Contact <span class="required-asterisk">*</span></label>
+      <input id="onsiteContact" type="text">
 
-        <label for="name">Name</label>
-        <input type="text" id="name" placeholder="Full Name">
+      <label>Phone Number <span class="required-asterisk">*</span></label>
+      <input id="phoneNumber" type="text">
 
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Email">
 
-        <label for="confirmEmail">Confirm Email</label>
-        <input type="email" id="confirmEmail" placeholder="Re-enter Email">
-   
-    <!--max number of spots to register at once: 4-->
-        <label for="spotsRequested">Number of Spots</label>
-<select id="spotsRequested">
-    <option value="1">1 spot</option>
-    <option value="2">2 spots</option>
-    <option value="3">3 spots</option>
-    <option value="4">4 spots</option>
-</select>
+      <label>Preferred Time <span class="required-asterisk">*</span></label>
+      <select id="preferredTime">
+        <option value="" disabled selected>Please select a preferred time</option>
+        <option value="Early Morning">Early Morning</option>
+        <option value="Late Morning">Late Morning</option>
+        <option value="Early Afternoon">Early Afternoon</option>
+        <option value="Late Afternoon">Late Afternoon</option>
+      </select>
 
+      <label>Address (optional)</label>
+      <textarea id="address"></textarea>
         
-        <!--adds registration to google sheet and saves to google script-->
-        <button type="button" onclick="registerEmployee()">
-            Submit Registration
-        </button>
+   <label>Delivery Notes</label>
+   <textarea id="deliveryNotes"></textarea>
 
+      <div class="buttons">
+        <button onclick="enableEdit()" id="editBtn">Edit</button>
+        <button onclick="saveDelivery()" id="saveBtn">Save</button>
+        <button onclick="deleteDelivery()" id="deleteBtn">Delete</button>
+        <button onclick="closePopup()">Cancel</button>
+      </div>
     </div>
-</div>
-    
+  </div>
 
-    <!--saves updated information on scripts-->
-<script>
-    const script = document.createElement("script");
-    script.src = "script.js?v=" + new Date().getTime();
-    document.body.appendChild(script);
-</script>
+  <div id="saveSuccess" class="toast hidden">
+    ✓ Delivery saved! Approval request sent to manager.
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init("G01hd-w3QqqqF_QWl");</script>
+  <script src="app.js"></script>
 </body>
 </html>
