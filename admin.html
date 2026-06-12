@@ -1,975 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Admin – Delivery Calendar</title>
-  <style>
-    :root {
-      --maroon: #811419;
-      --maroon-dark: #5e0f13;
-      --maroon-light: #f9eaea;
-      --white: #ffffff;
-      --light-gray: #f5f5f5;
-      --border: #dddddd;
-      --warning: #b45309;
-      --warning-bg: #fef3c7;
-      --danger: #991b1b;
-      --danger-bg: #fee2e2;
-      --success: #166534;
-      --success-bg: #dcfce7;
-    }
- 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
- 
-    body {
-      font-family: Arial, sans-serif;
-      background: var(--light-gray);
-      min-height: 100vh;
-    }
- 
-    /* ── Header ── */
-    .header {
-      background: var(--maroon);
-      color: white;
-      padding: 16px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    .header h1 { font-size: 20px; letter-spacing: .5px; }
-    .header .badge {
-      background: white;
-      color: var(--maroon);
-      font-size: 11px;
-      font-weight: bold;
-      padding: 3px 10px;
-      border-radius: 99px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .back-link {
-      color: rgba(255,255,255,.8);
-      text-decoration: none;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color .15s;
-    }
-    .back-link:hover { color: white; }
- 
-    /* ── Layout ── */
-    .page {
-      max-width: 1100px;
-      margin: 32px auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 24px;
-      align-items: start;
-    }
- 
-    /* ── Cards ── */
-    .card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .card-header {
-      background: var(--maroon);
-      color: white;
-      padding: 14px 20px;
-      font-weight: bold;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card-body { padding: 20px; }
- 
-    /* ── Block Day Panel ── */
-    .block-section { margin-bottom: 24px; }
-    .block-section label {
-      display: block;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-    .block-section input[type="date"],
-    .block-section textarea,
-    .block-section select {
-      width: 100%;
-      padding: 9px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: Arial, sans-serif;
-    }
-    .block-section input[type="date"]:focus,
-    .block-section textarea:focus,
-    .block-section select:focus {
-      outline: none;
-      border-color: var(--maroon);
-    }
-    .block-section textarea { height: 70px; resize: vertical; }
- 
-    .reason-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .pill {
-      padding: 5px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 99px;
-      font-size: 13px;
-      cursor: pointer;
-      background: white;
-      color: #555;
-      transition: all .15s;
-      user-select: none;
-    }
-    .pill:hover { border-color: var(--maroon); color: var(--maroon); }
-    .pill.active {
-      background: var(--maroon);
-      border-color: var(--maroon);
-      color: white;
-    }
- 
-    .btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-      transition: opacity .15s;
-    }
-    .btn:hover { opacity: .88; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-maroon { background: var(--maroon); color: white; }
-    .btn-outline {
-      background: white;
-      color: var(--maroon);
-      border: 1.5px solid var(--maroon);
-    }
- 
-    /* ── Blocked Days List ── */
-    .blocked-list { display: flex; flex-direction: column; gap: 10px; }
-    .blocked-item {
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--danger);
-      border-radius: 6px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      background: #fff;
-    }
-    .blocked-item .info .date-label {
-      font-weight: bold;
-      color: #111;
-      font-size: 14px;
-    }
-    .blocked-item .info .reason-tag {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 99px;
-      background: var(--danger-bg);
-      color: var(--danger);
-      font-weight: bold;
-    }
-    .blocked-item .info .note {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-    .unblock-btn {
-      background: none;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 12px;
-      padding: 4px 10px;
-      cursor: pointer;
-      color: #555;
-      white-space: nowrap;
-      transition: all .15s;
-      flex-shrink: 0;
-    }
-    .unblock-btn:hover { border-color: var(--maroon); color: var(--maroon); }
- 
-    .empty-state {
-      text-align: center;
-      color: #999;
-      font-style: italic;
-      padding: 20px 0;
-      font-size: 14px;
-    }
- 
-    /* ── Right column: delivery management ── */
-    .admin-search-bar {
-      display: flex;
-      gap: 8px;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .admin-search-bar input {
-      flex: 1;
-      padding: 8px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: Arial, sans-serif;
-    }
-    .admin-search-bar input:focus {
-      outline: none;
-      border-color: var(--maroon);
-    }
-    .admin-search-results {
-      padding: 0 20px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .admin-search-result {
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--maroon);
-      border-radius: 6px;
-      padding: 10px 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      transition: all .15s;
-    }
-    .admin-search-result:hover {
-      background: var(--maroon-light);
-    }
-
-    .week-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .week-nav button {
-      background: none;
-      border: 1.5px solid var(--maroon);
-      color: var(--maroon);
-      padding: 5px 14px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 13px;
-      transition: all .15s;
-    }
-    .week-nav button:hover { background: var(--maroon); color: white; }
-    .week-nav .week-label { font-weight: bold; color: var(--maroon); font-size: 15px; }
- 
-    .delivery-grid {
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
- 
-    /* Day block */
-    .day-block {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .day-block.day-blocked {
-      border-color: var(--danger);
-      opacity: .85;
-    }
-    .day-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: var(--maroon-light);
-      font-weight: bold;
-      font-size: 14px;
-      color: var(--maroon);
-    }
-    .day-title.blocked-title {
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
-    .day-title .blocked-badge {
-      font-size: 11px;
-      background: var(--danger);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 99px;
-      font-weight: bold;
-      letter-spacing: .5px;
-    }
- 
-    /* Delivery rows */
-    .delivery-row {
-      display: grid;
-      grid-template-columns: 70px 1fr 130px 180px;
-      align-items: center;
-      padding: 8px 14px;
-      border-top: 1px solid var(--border);
-      gap: 10px;
-      font-size: 13px;
-    }
-    .delivery-row:hover { background: #fafafa; }
-    .delivery-row[draggable="true"] { cursor: grab; }
-    .delivery-row.drag-over { background: #fef3c7; outline: 2px dashed var(--maroon); }
-    .slot-label { font-weight: bold; color: #555; }
-    .delivery-info .order { font-weight: bold; color: #111; }
-    .delivery-info .sub { color: #777; font-size: 12px; margin-top: 1px; }
-    .status-badge {
-      font-size: 11px;
-      font-weight: bold;
-      padding: 3px 9px;
-      border-radius: 99px;
-      text-align: center;
-    }
-    .status-pending { background: var(--maroon); color: white; }
-    .status-approved { background: var(--success-bg); color: var(--success); }
-    .approve-btn {
-      background: none;
-      border: 1px solid var(--success);
-      border-radius: 5px;
-      font-size: 12px;
-      padding: 4px 8px;
-      cursor: pointer;
-      color: var(--success);
-      transition: all .15s;
-      font-weight: bold;
-    }
-    .approve-btn:hover { background: var(--success-bg); }
-    .reject-btn {
-      background: none;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 12px;
-      padding: 4px 8px;
-      cursor: pointer;
-      color: #555;
-      transition: all .15s;
-    }
-    .reject-btn:hover { border-color: var(--danger); color: var(--danger); }
-    .remove-btn {
-      background: none;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 12px;
-      padding: 4px 8px;
-      cursor: pointer;
-      color: #555;
-      transition: all .15s;
-    }
-    .remove-btn:hover { border-color: #991b1b; color: #991b1b; background: #fee2e2; }
-    .action-btns { display: flex; gap: 5px; align-items: center; }
-    .status-cancelled { background: var(--danger-bg); color: var(--danger); }
-    .status-empty { background: #eee; color: #888; }
- 
-    .cancel-slot-btn {
-      background: none;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 12px;
-      padding: 4px 10px;
-      cursor: pointer;
-      color: #555;
-      transition: all .15s;
-    }
-    .cancel-slot-btn:hover { border-color: var(--danger); color: var(--danger); }
-    .cancel-slot-btn.restore {
-      border-color: var(--success);
-      color: var(--success);
-    }
-    .cancel-slot-btn.restore:hover { background: var(--success-bg); }
-    .empty-slot { color: #bbb; font-style: italic; }
- 
-    /* ── Toast ── */
-    .toast {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      background: #1a1a1a;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.3);
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all .25s;
-      z-index: 999;
-      pointer-events: none;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
- 
-    /* ── Confirm modal ── */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    .modal-overlay.hidden { display: none; }
-    .modal-box {
-      background: white;
-      border-radius: 10px;
-      border-top: 5px solid var(--danger);
-      padding: 28px;
-      width: 380px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.2);
-    }
-    .modal-box h3 { color: var(--danger); margin-bottom: 10px; }
-    .modal-box p { color: #444; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
-    .modal-btns { display: flex; gap: 10px; }
-    .modal-btns button { flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; }
-    .modal-confirm { background: var(--danger); color: white; }
-    .modal-cancel-btn { background: #eee; color: #333; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Class Entry</title>
+ <!--grabs style info from csss file-->
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <!--loads google sheet-->
+     <a
+    href="https://docs.google.com/spreadsheets/d/1ho8sNdXEAROHFPHTFDvMFfhpfFSWnmo-MfxPBIhjFlI/edit?gid=0#gid=0"
+    target="_blank"
+    class="sheet-link">
+   Google Sheet
+</a>
+    
+ <!--creates admin password. Should be made more secure-->
+  <script>
+    const adminPassword = prompt("Enter admin password:");
 
-<!-- Login overlay -->
-<div id="loginOverlay" style="
-  position:fixed; inset:0; background:#811419;
-  display:flex; align-items:center; justify-content:center; z-index:9999;">
-  <div style="background:white; padding:36px; border-radius:12px; width:340px; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-    <h2 style="color:#811419; margin:0 0 8px;">Admin Login</h2>
-    <p style="color:#666; font-size:14px; margin:0 0 20px;">Enter your admin password to continue.</p>
-    <input id="loginPassword" type="password" placeholder="Password"
-      style="width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;margin-bottom:12px;"
-      onkeydown="if(event.key==='Enter') login()">
-    <button onclick="login()"
-      style="width:100%;padding:11px;background:#811419;color:white;border:none;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;">
-      Login
-    </button>
-    <div id="loginError" style="color:#991b1b;font-size:13px;margin-top:10px;display:none;">
-      Incorrect password. Please try again.
-    </div>
-  </div>
-</div>
- 
-<div class="header">
-  <a class="back-link" href="index.html">Back to Calendar</a>
-  <h1>Admin Panel</h1>
-  <span class="badge">Admin Only</span>
-</div>
- 
-<div class="page">
- 
-  <!-- LEFT: Block a day -->
-  <div>
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-header">Block a Day</div>
-      <div class="card-body">
-        <div class="block-section">
-          <label>Date to Block</label>
-          <input type="date" id="blockDate">
-        </div>
-        <div class="block-section">
-          <label>Reason</label>
-          <div class="reason-pills" id="reasonPills">
-            <span class="pill active" data-reason="Weather">Weather</span>
-            <span class="pill" data-reason="Holiday">Holiday</span>
-            <span class="pill" data-reason="Staff Shortage">Staff Shortage</span>
-            <span class="pill" data-reason="Barbeque">Barbeque </span>
-            <span class="pill" data-reason="other">Other</span>
-          </div>
-        </div>
-        <div class="block-section">
-          <label>Note (optional)</label>
-          <textarea id="blockNote" placeholder="e.g. Blizzard warning — all deliveries suspended"></textarea>
-        </div>
-        <button class="btn btn-danger" onclick="blockDay()">Block This Day</button>
-      </div>
-    </div>
- 
-    <!-- Blocked days list -->
-    <div class="card">
-      <div class="card-header">Blocked Days</div>
-      <div class="card-body">
-        <div class="blocked-list" id="blockedList"></div>
-      </div>
-    </div>
-
-    <!-- Removed/Rejected deliveries -->
-    <div class="card" style="margin-top:20px">
-      <div class="card-header">Removed / Rejected Deliveries</div>
-      <div class="card-body">
-        <div class="blocked-list" id="removedList"></div>
-      </div>
-    </div>
-  </div>
- 
-  <!-- RIGHT: Weekly delivery management -->
-  <div class="card">
-    <div class="card-header">Manage Deliveries</div>
-    <div class="admin-search-bar">
-     <input type="text" id="adminSearch" placeholder="Search by Order # or Salesperson Name" onkeydown="if(event.key==='Enter') searchDeliveries()">
-      <button class="btn btn-outline" style="width:auto;" onclick="searchDeliveries()">Search</button>
-      <button class="btn btn-outline" style="width:auto;" onclick="clearAdminSearch()">Clear</button>
-    </div>
-    <div id="adminSearchResults" class="hidden"></div>
-    <div class="week-nav">
-      <button onclick="changeWeek(-1)">Prev</button>
-      <span class="week-label" id="weekLabel"></span>
-      <button onclick="changeWeek(1)">Next</button>
-    </div>
-    <div class="delivery-grid" id="deliveryGrid"></div>
-  </div>
-
-</div>
- 
-<!-- Confirm modal -->
-<div class="modal-overlay hidden" id="confirmModal">
-  <div class="modal-box">
-    <h3 id="modalTitle">Confirm Action</h3>
-    <p id="modalMessage"></p>
-    <div class="modal-btns">
-      <button class="modal-cancel-btn" onclick="closeModal()">Go Back</button>
-      <button class="modal-confirm" id="modalConfirmBtn">Confirm</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delivery details modal -->
-<div class="modal-overlay hidden" id="detailsModal">
-  <div class="modal-box">
-    <h3>Delivery Details</h3>
-    <div id="detailsContent"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel-btn" onclick="closeDetailsModal()">Close</button>
-    </div>
-  </div>
-</div>
- 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
- 
-<script>
-  const API_URL  = "http://localhost:4000";
-  let adminToken = sessionStorage.getItem("adminToken") || null;
-
-  // ── Login ─────────────────────────────────────────────────────────────────
-  async function login() {
-    const password = document.getElementById("loginPassword").value;
-    try {
-      const res  = await fetch(API_URL + "/auth/login", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ password })
-      });
-      if (!res.ok) {
-        document.getElementById("loginError").style.display = "block";
-        return;
-      }
-      const data = await res.json();
-      adminToken = data.token;
-      sessionStorage.setItem("adminToken", adminToken);
-      document.getElementById("loginOverlay").style.display = "none";
-      loadData().then(render);
-    } catch (err) {
-      document.getElementById("loginError").style.display = "block";
+    if (adminPassword !== "DBC") {
+        alert("Incorrect password.");
+        window.location.href = "index.html";
     }
-  }
-
-  // If already logged in, hide the overlay immediately
-  if (adminToken) {
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("loginOverlay").style.display = "none";
-    });
-  }
-  let deliveries          = {};
-  let blockedDays         = {};
-  let cancelledDeliveries = [];  // array from API
-  let currentMonday = getMonday(new Date());
-  let selectedReason = "Weather";
-  let pendingAction  = null;
-
-  function authHeaders() {
-    return { "Content-Type": "application/json", "Authorization": "Bearer " + adminToken };
-  }
-
-  async function loadData() {
-    try {
-      const [dRes, bRes, cRes] = await Promise.all([
-        fetch(API_URL + "/deliveries"),
-        fetch(API_URL + "/blocked-days"),
-        fetch(API_URL + "/cancelled-deliveries")
-      ]);
-      const dArr = await dRes.json();
-      const bArr = await bRes.json();
-      const cArr = await cRes.json();
-      deliveries = {};
-      dArr.forEach(d => {
-        const key = d.date_key + "-slot-" + d.slot;
-        deliveries[key] = { id: d.id, orderNumber: d.order_number, phoneNumber: d.phone_number,
-          onsiteContact: d.onsite_contact, preferredTime: d.preferred_time, address: d.address,
-          deliveryNotes: d.delivery_notes, salespersonName: d.salesperson_name,
-          salespersonEmail: d.salesperson_email, status: d.status };
-      });
-      blockedDays = {};
-      bArr.forEach(b => { blockedDays[b.date_key] = { id: b.id, reason: b.reason, note: b.note }; });
-      cancelledDeliveries = cArr;
-    } catch (err) { console.error("Failed to load:", err); }
-  }
-
-  document.querySelectorAll(".pill").forEach(p => {
-    p.addEventListener("click", () => {
-      document.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
-      p.classList.add("active");
-      selectedReason = p.dataset.reason;
-    });
-  });
-
-  async function blockDay() {
-    const date = document.getElementById("blockDate").value;
-    if (!date) { showToast("Please pick a date first."); return; }
-    const note = document.getElementById("blockNote").value.trim();
-    showConfirm("Block This Day?",
-      "Block <strong>" + formatDisplay(date) + "</strong> for reason: <strong>" + selectedReason + "</strong>?" +
-      (note ? "<br><br>Note: \"" + note + "\"" : "") + "<br><br>Existing deliveries on this day will be marked cancelled.",
-      async () => {
-        try {
-          const res = await fetch(API_URL + "/blocked-days", { method: "POST", headers: authHeaders(),
-            body: JSON.stringify({ dateKey: date, reason: selectedReason, note }) });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-          document.getElementById("blockDate").value = "";
-          document.getElementById("blockNote").value = "";
-          await loadData(); render();
-          showToast(formatDisplay(date) + " blocked — " + selectedReason);
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function approveSlot(key, orderNum) {
-    const delivery = deliveries[key];
-    showConfirm("Approve Delivery?",
-      "Approve delivery <strong>" + (orderNum || key) + "</strong>? The status will update to Approved.",
-      async () => {
-        try {
-          const res = await fetch(API_URL + "/deliveries/" + delivery.id, { method: "PUT",
-            headers: authHeaders(), body: JSON.stringify({ status: "approved" }) });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-          await loadData(); render(); showToast("Delivery approved.");
-          if (delivery.salespersonEmail) sendStatusEmail(delivery, key, "Great news! Your delivery request has been approved.");
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function rejectSlot(key, orderNum) {
-    const delivery = deliveries[key];
-    showConfirm("Reject Delivery?",
-      "Reject delivery <strong>" + (orderNum || key) + "</strong>? This will remove it from the calendar.",
-      async () => {
-        try {
-          // Save to cancelled deliveries before deleting
-          const dateKey = key.split("-slot-")[0];
-          const slot    = key.split("-slot-")[1];
-          await fetch(API_URL + "/cancelled-deliveries", {
-            method: "POST", headers: authHeaders(),
-            body: JSON.stringify({
-              originalKey:      key,
-              dateKey,
-              slot:             parseInt(slot),
-              reason:           "Rejected",
-              orderNumber:      delivery.orderNumber      || "",
-              salespersonName:  delivery.salespersonName  || "",
-              salespersonEmail: delivery.salespersonEmail || "",
-              phoneNumber:      delivery.phoneNumber      || "",
-              onsiteContact:    delivery.onsiteContact    || "",
-              preferredTime:    delivery.preferredTime    || "",
-              address:          delivery.address          || "",
-              deliveryNotes:    delivery.deliveryNotes    || ""
-            })
-          });
-
-          const res = await fetch(API_URL + "/deliveries/" + delivery.id, { method: "DELETE", headers: authHeaders() });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-          await loadData(); render(); showToast("Delivery rejected and removed.");
-          if (delivery.salespersonEmail) sendStatusEmail(delivery, key, "Unfortunately your delivery request has been rejected. Please contact your manager for more information.");
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function removeSlot(key, orderNum) {
-    const delivery = deliveries[key];
-    showConfirm("Remove Delivery?",
-      "Permanently remove delivery <strong>" + (orderNum || key) + "</strong>? This cannot be undone.",
-      async () => {
-        try {
-          // Save to cancelled deliveries before deleting
-          const dateKey = key.split("-slot-")[0];
-          const slot    = key.split("-slot-")[1];
-          await fetch(API_URL + "/cancelled-deliveries", {
-            method: "POST", headers: authHeaders(),
-            body: JSON.stringify({
-              originalKey:      key,
-              dateKey,
-              slot:             parseInt(slot),
-              reason:           "Removed",
-              orderNumber:      delivery.orderNumber      || "",
-              salespersonName:  delivery.salespersonName  || "",
-              salespersonEmail: delivery.salespersonEmail || "",
-              phoneNumber:      delivery.phoneNumber      || "",
-              onsiteContact:    delivery.onsiteContact    || "",
-              preferredTime:    delivery.preferredTime    || "",
-              address:          delivery.address          || "",
-              deliveryNotes:    delivery.deliveryNotes    || ""
-            })
-          });
-
-          const res = await fetch(API_URL + "/deliveries/" + delivery.id, { method: "DELETE", headers: authHeaders() });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-          await loadData(); render(); showToast("Delivery removed.");
-          if (delivery.salespersonEmail) sendStatusEmail(delivery, key, "Your delivery has been removed by the manager.");
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function sendStatusEmail(delivery, key, message) {
-    const dateKey = key.split("-slot-")[0];
-    const slot    = key.split("-slot-")[1];
-    const parts   = dateKey.split("-").map(Number);
-    const displayDate = new Date(parts[0], parts[1]-1, parts[2]).toLocaleDateString("en-US",
-      { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-    emailjs.send("service_7alcqe6", "template_b71mbas", {
-      salespersonName: delivery.salespersonName || "Salesperson",
-      salespersonEmail: delivery.salespersonEmail, message,
-      orderNumber: delivery.orderNumber || "—", dateKey: displayDate, slot,
-      onsiteContact: delivery.onsiteContact || "—", phoneNumber: delivery.phoneNumber || "—",
-      preferredTime: delivery.preferredTime || "—", address: delivery.address || "—",
-      deliveryNotes: delivery.deliveryNotes || "—"
-    }).then(() => showToast("Email sent to " + delivery.salespersonName + "."))
-      .catch(err => console.warn("Email failed:", err));
-  }
-
-  function unblockDay(dateKey) {
-    showConfirm("Unblock This Day?", "Remove the block on <strong>" + formatDisplay(dateKey) + "</strong>?",
-      async () => {
-        try {
-          const res = await fetch(API_URL + "/blocked-days/" + dateKey, { method: "DELETE", headers: authHeaders() });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-          await loadData(); render(); showToast(formatDisplay(dateKey) + " unblocked.");
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function render() { renderBlockedList(); renderCancelledList(); renderDeliveryGrid(); }
-
-  function renderCancelledList() {
-    const list = document.getElementById("removedList");
-    if (!list) return;
-    if (!cancelledDeliveries.length) {
-      list.innerHTML = '<div class="empty-state">No removed or rejected deliveries.</div>';
-      return;
-    }
-    list.innerHTML = cancelledDeliveries.map(c => {
-      return '<div class="blocked-item">' +
-        '<div class="info">' +
-          '<div class="date-label">' + formatDisplay(c.date_key) + ' — Slot ' + c.slot + '</div>' +
-          '<span class="reason-tag">' + c.reason + '</span>' +
-          '<div class="note">Order #' + (c.order_number||"—") + ' · ' + (c.salesperson_name||"—") + '</div>' +
-        '</div>' +
-        '<button class="unblock-btn" onclick="restoreDelivery(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">Add Back</button>' +
-      '</div>';
-    }).join("");
-  }
-
-  async function restoreDelivery(c) {
-    const key = c.original_key;
-    if (deliveries[key]) { showToast("That slot is now occupied — can't add back."); return; }
-    showConfirm("Add Back to Calendar?",
-      "Restore Order #" + (c.order_number||"—") + " to its original slot as a pending delivery?",
-      async () => {
-        try {
-          // Re-add to deliveries
-          const res = await fetch(API_URL + "/deliveries", {
-            method: "POST", headers: authHeaders(),
-            body: JSON.stringify({
-              dateKey:          c.date_key,
-              slot:             c.slot,
-              orderNumber:      c.order_number,
-              salespersonName:  c.salesperson_name,
-              salespersonEmail: c.salesperson_email,
-              phoneNumber:      c.phone_number,
-              onsiteContact:    c.onsite_contact,
-              preferredTime:    c.preferred_time,
-              address:          c.address,
-              deliveryNotes:    c.delivery_notes
-            })
-          });
-          if (!res.ok) { const e = await res.json(); showToast("Error: " + e.error); return; }
-
-          // Remove from cancelled list
-          await fetch(API_URL + "/cancelled-deliveries/" + c.id, { method: "DELETE", headers: authHeaders() });
-
-          await loadData(); render();
-          showToast("Delivery added back to calendar.");
-        } catch (err) { showToast("Could not connect to server."); }
-      });
-  }
-
-  function renderBlockedList() {
-    const list = document.getElementById("blockedList");
-    const keys = Object.keys(blockedDays).sort();
-    if (!keys.length) { list.innerHTML = '<div class="empty-state">No days blocked yet.</div>'; return; }
-    list.innerHTML = keys.map(date => {
-      const b = blockedDays[date];
-      return '<div class="blocked-item"><div class="info"><div class="date-label">' + formatDisplay(date) + '</div>' +
-        '<span class="reason-tag">' + b.reason + '</span>' + (b.note ? '<div class="note">' + b.note + '</div>' : '') +
-        '</div><button class="unblock-btn" onclick="unblockDay(\'' + date + '\')">Unblock</button></div>';
-    }).join("");
-  }
-
-  function renderDeliveryGrid() {
-    const grid     = document.getElementById("deliveryGrid");
-    const dayNames = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
-    document.getElementById("weekLabel").textContent =
-      formatDisplay(fmt(currentMonday)) + " \u2013 " + formatDisplay(fmt(addDays(currentMonday,4)));
-
-    grid.innerHTML = dayNames.map((name, i) => {
-      const date      = addDays(currentMonday, i);
-      const dateKey   = fmt(date);
-      const isBlocked = !!blockedDays[dateKey];
-
-      const slots = Array.from({ length: 5 }, (_, s) => {
-        const slot = s+1, key = dateKey+"-slot-"+slot, d = deliveries[key];
-        const isApproved = d && d.status === "approved";
-        const isCancelled = d && d.status === "cancelled";
-        let statusHtml, actionHtml;
-        if (!d) {
-          statusHtml = '<span class="status-badge status-empty">Empty</span>';
-          actionHtml = '<span></span>';
-        } else if (isCancelled) {
-          statusHtml = '<span class="status-badge status-cancelled">Cancelled</span>';
-          actionHtml = '<div class="action-btns"><button class="remove-btn" onclick="removeSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Remove</button></div>';
-        } else if (isApproved) {
-          statusHtml = '<span class="status-badge status-approved">Approved</span>';
-          actionHtml = '<div class="action-btns">' +
-            '<button class="reject-btn" onclick="rejectSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Reject</button>' +
-            '<button class="remove-btn" onclick="removeSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Remove</button></div>';
-        } else {
-          statusHtml = '<span class="status-badge status-pending">Pending</span>';
-          actionHtml = '<div class="action-btns">' +
-            '<button class="approve-btn" onclick="approveSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Approve</button>' +
-            '<button class="reject-btn" onclick="rejectSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Reject</button>' +
-            '<button class="remove-btn" onclick="removeSlot(\'' + key + '\',\'' + (d.orderNumber||"") + '\')">Remove</button></div>';
-        }
-        return '<div class="delivery-row" data-key="' + key + '">' +
-          '<span class="slot-label">Slot ' + slot + '</span>' +
-          '<div class="delivery-info"' + (d ? ' style="cursor:pointer;" onclick="showDeliveryDetails(\'' + key + '\')"' : '') + '>' +
-          (d ? '<div class="order">#' + (d.orderNumber||"—") + '</div><div class="sub">' + (d.onsiteContact||"") + (d.preferredTime ? " · "+d.preferredTime : "") + '</div>'
-             : '<span class="empty-slot">No delivery</span>') +
-          '</div>' + statusHtml + actionHtml + '</div>';
-      }).join("");
-
-      return '<div class="day-block' + (isBlocked ? " day-blocked" : "") + '">' +
-        '<div class="day-title' + (isBlocked ? " blocked-title" : "") + '">' +
-        '<span>' + name + ', ' + formatDisplay(dateKey) + '</span>' +
-        (isBlocked ? '<span class="blocked-badge">' + blockedDays[dateKey].reason + '</span>' : '') +
-        '</div>' + slots + '</div>';
-    }).join("");
-  }
-
-  function searchDeliveries() {
-    const term = document.getElementById("adminSearch").value.trim().toLowerCase();
-    const resultsBox = document.getElementById("adminSearchResults");
-    if (!term) { resultsBox.classList.add("hidden"); return; }
-    const matches = Object.keys(deliveries).filter(key => {
-      const d = deliveries[key];
-      return (d.orderNumber||"").toLowerCase().includes(term) || (d.salespersonName||"").toLowerCase().includes(term);
-    }).sort();
-    if (!matches.length) {
-      resultsBox.innerHTML = '<div class="admin-search-results"><div class="empty-state">No deliveries found.</div></div>';
-      resultsBox.classList.remove("hidden"); return;
-    }
-    resultsBox.innerHTML = '<div class="admin-search-results">' + matches.map(key => {
-      const d = deliveries[key], dateKey = key.split("-slot-")[0], slot = key.split("-slot-")[1];
-      return '<div class="admin-search-result" onclick="jumpToDelivery(\'' + dateKey + '\')">' +
-        '<span>' + formatDisplay(dateKey) + ' — Slot ' + slot + ' — Order #' + (d.orderNumber||"—") + '</span>' +
-        '<span>' + (d.salespersonName||"—") + '</span></div>';
-    }).join("") + '</div>';
-    resultsBox.classList.remove("hidden");
-  }
-
-  function clearAdminSearch() {
-    document.getElementById("adminSearch").value = "";
-    document.getElementById("adminSearchResults").classList.add("hidden");
-  }
-
-  function jumpToDelivery(dateKey) {
-    currentMonday = getMonday(new Date(dateKey + "T12:00:00"));
-    renderDeliveryGrid();
-  }
-
-  function changeWeek(dir) { currentMonday = addDays(currentMonday, dir*7); renderDeliveryGrid(); }
-
-  function showDeliveryDetails(key) {
-    const d = deliveries[key];
-    if (!d) return;
-    document.getElementById("detailsContent").innerHTML =
-      "<p><strong>Order #:</strong> " + (d.orderNumber||"—") + "</p>" +
-      "<p><strong>Salesperson:</strong> " + (d.salespersonName||"—") + "</p>" +
-      "<p><strong>Salesperson Email:</strong> " + (d.salespersonEmail||"—") + "</p>" +
-      "<p><strong>Onsite Contact:</strong> " + (d.onsiteContact||"—") + "</p>" +
-      "<p><strong>Phone Number:</strong> " + (d.phoneNumber||"—") + "</p>" +
-      "<p><strong>Preferred Time:</strong> " + (d.preferredTime||"—") + "</p>" +
-      "<p><strong>Address:</strong> " + (d.address||"—") + "</p>" +
-      "<p><strong>Delivery Notes:</strong> " + (d.deliveryNotes||"—") + "</p>";
-    document.getElementById("detailsModal").classList.remove("hidden");
-  }
-  function closeDetailsModal() { document.getElementById("detailsModal").classList.add("hidden"); }
-
-  function showConfirm(title, msg, onConfirm) {
-    document.getElementById("modalTitle").textContent = title;
-    document.getElementById("modalMessage").innerHTML = msg;
-    document.getElementById("confirmModal").classList.remove("hidden");
-    pendingAction = onConfirm;
-  }
-  function closeModal() { document.getElementById("confirmModal").classList.add("hidden"); pendingAction = null; }
-  document.getElementById("modalConfirmBtn").addEventListener("click", () => { if (pendingAction) pendingAction(); closeModal(); });
-
-  function showToast(msg) {
-    const t = document.getElementById("toast");
-    t.textContent = msg; t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2800);
-  }
-
-  function getMonday(d) { const day = d.getDay(), diff = d.getDate()-day+(day===0?-6:1); return new Date(new Date(d).setDate(diff)); }
-  function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
-  function fmt(d) { return d.toISOString().split("T")[0]; }
-  function formatDisplay(dateStr) {
-    const p = dateStr.split("-").map(Number);
-    return new Date(p[0],p[1]-1,p[2]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const jumpDate  = urlParams.get("date");
-  if (jumpDate) currentMonday = getMonday(new Date(jumpDate + "T12:00:00"));
-
-  if (adminToken) {
-    loadData().then(render);
-  }
-  setInterval(() => { if (adminToken) loadData().then(render); }, 10000);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>emailjs.init("G01hd-w3QqqqF_QWl");</script>
+
+ 
+ <!--loads set up for admin page and creates input-->
+<div class="classes-box">
+
+    <h1>ADMIN CLASS ENTRY/EDIT PORTAL</h1>
+    
+    <p class="subtitle">
+    This information will be used to sign up for classes. Please make sure it is correct. </p>
+
+    <h2>Add New Class</h2>
+
+    <label for="adminBranch">Branch</label>
+    <input type="text" id="adminBranch" placeholder="Ex: Denver">
+
+    <label for="adminClass">Class Name</label>
+    <input type="text" id="adminClass" placeholder="Ex: Lighting Design">
+
+    <label for="adminDate">Date</label>
+    <input type="text" id="adminDate" placeholder="MM/DD/YYYY">
+
+    <label for="adminTime">Time</label>
+    <input type="text" id="adminTime" placeholder="Ex: 9-11 AM">
+
+    <label for="adminDescription">Description</label>
+    <textarea id="adminDescription" placeholder="Enter class description"></textarea>
+    
+     <label for="adminTeacher">Instructor</label>
+    <input type="text" id="adminTeacher" placeholder="Who is teaching the class?">
+    
+    <label for="adminCapacity">Seat Capacity</label>
+    <input type="number" id="adminCapacity" placeholder="Ex: 20">
+    
+     <label for="adminLunch">Is lunch provided?</label>
+    <input type="text" id="adminLunch" placeholder="Yes/No">
+
+    
+     <label for="adminAddress">Address</label>
+    <input type="text" id="adminAddress" placeholder="123 Main St, Denver, CO">
+
+
+    <button type="button" onclick="addClass()">Add Class</button>
+
+    <hr>
+
+ <hr>
+    <h2>Edit or Delete Existing Class</h2>
+
+   <label for="existingClass">
+    Select Existing Class
+</label>
+
+<select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option><option value="">Sheridan - Lighting Design</option><option value="{&quot;rowNumber&quot;:3,&quot;branch&quot;:&quot;Sheridan&quot;,&quot;name&quot;:&quot;Irrigation&quot;,&quot;date&quot;:&quot;2026-11-18T07:00:00.000Z&quot;,&quot;time&quot;:&quot;12-4pm&quot;,&quot;description&quot;:&quot;this is a class about irrigation in sheridan&quot;,&quot;address&quot;:&quot;1890 W Hamilton Pl, Sheridan, CO 80110&quot;,&quot;teacher&quot;:&quot;Someone&quot;,&quot;lunch&quot;:&quot;yes&quot;,&quot;capacity&quot;:18,&quot;registered&quot;:0,&quot;seatsLeft&quot;:18}">Sheridan - Irrigation</option><option value="{&quot;rowNumber&quot;:4,&quot;branch&quot;:&quot;Broomfield&quot;,&quot;name&quot;:&quot;Water&quot;,&quot;date&quot;:&quot;2026-08-04T06:00:00.000Z&quot;,&quot;time&quot;:&quot;2026-09-12T06:00:00.000Z&quot;,&quot;description&quot;:&quot;this is a class about water in Broomfield&quot;,&quot;address&quot;:&quot;7250 W 116th Pl, Broomfield, CO 80020&quot;,&quot;teacher&quot;:&quot;An instructor&quot;,&quot;lunch&quot;:&quot;yes&quot;,&quot;capacity&quot;:20,&quot;registered&quot;:0,&quot;seatsLeft&quot;:20}">Broomfield - Water</option></select>
+
+  <button type="button" onclick="updateClass()">
+    Update Selected Class
+</button>
+
+    <button type="button" onclick="deleteClass()">Delete Selected Class</button>
+
+<button type="button" onclick="downloadRoster()">Download Roster CSV</button>
+        
+        
+      
+    
+ <h2>Remove Someone From Selected Class</h2>
+
+<label for="registrationToRemove">Select Registration</label>
+
+<select id="registrationToRemove">
+    <option value="">Select a class first</option>
+</select>
+
+<button type="button" onclick="removeRegistration()">
+    Remove Selected Registration
+</button>
+ 
+ 
+
+</div>
+
+ <!--loads info into script page and updates google sheet with class info-->
+<script>
+    const script = document.createElement("script");
+    script.src = "script.js?v=" + new Date().getTime();
+    document.body.appendChild(script);
+</script>
+        
 </body>
 </html>
