@@ -82,8 +82,8 @@ function displayClassCatalog() {
                     <p><strong>Time:</strong> ${classItem.time}</p>
                     <p><strong>Instructor:</strong> ${classItem.teacher}</p>
 
-                    <p class="${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
-                        ${classItem.lunch && classItem.lunch.toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
+                    <p class="${String(classItem.lunch || "").toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
+                        ${String(classItem.lunch || "").toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
                     </p>
 
                     <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
@@ -259,6 +259,7 @@ function addClass() {
         alert("Class added. Please see updated Google Sheet");
         clearAdminForm();
         loadAdminClasses();
+        loadSheetNames();
     }, 1500);
 }
 
@@ -405,20 +406,29 @@ function deleteClass() {
         })
     });
 
-    //alerts class has been deleted 
+    //remove the class from the dropdown right away instead of waiting on a refresh
+    const existingClassDropdown = document.getElementById("existingClass");
+
+    if (existingClassDropdown && existingClassDropdown.selectedIndex > 0) {
+        existingClassDropdown.options[existingClassDropdown.selectedIndex].remove();
+        existingClassDropdown.selectedIndex = 0;
+    }
+
+    allClasses = allClasses.filter(function (c) {
+        return !(
+            c.branch === adminSelectedClass.branch &&
+            c.name === adminSelectedClass.name
+        );
+    });
+
+    adminSelectedClass = null;
+    clearAdminForm();
+
+    //re-sync with the sheet a moment later in case anything else changed
     setTimeout(function () {
         alert("Class cancelled/deleted.");
-
-        adminSelectedClass = null;
-        clearAdminForm();
-
-        const existingClassDropdown = document.getElementById("existingClass");
-
-        if (existingClassDropdown) {
-            existingClassDropdown.selectedIndex = 0;
-        }
-
         loadAdminClasses();
+        loadSheetNames();
     }, 1500);
 }
 
@@ -584,10 +594,158 @@ function filterByBranch() {
 }
 
 
-//loads classes on registration page and form on the admin page 
+//loads classes on registration page and form on the admin page
 function startPage() {
     loadClasses();
     loadAdminClasses();
+    loadSheetNames();
+}
+
+//populates the "View" dropdown on the admin page with every sheet in the
+//spreadsheet (Master Registrations, Waitlist, Cancelled Classes, per-class
+//rosters, etc.) and loads Master Registrations into the table by default
+async function loadSheetNames() {
+    const select = document.getElementById("registrationsSheetSelect");
+
+    if (!select) {
+        return;
+    }
+
+    try {
+        const response = await fetch(SCRIPT_URL + "?getSheetNames=true");
+        const names = await response.json();
+
+        const orderedNames = [
+            "Master Registrations",
+            ...names.filter(function (name) {
+                return name !== "Master Registrations";
+            })
+        ];
+
+        select.innerHTML = "";
+
+        for (let i = 0; i < orderedNames.length; i++) {
+            const option = document.createElement("option");
+
+            option.value = orderedNames[i];
+            option.textContent = orderedNames[i];
+
+            select.appendChild(option);
+        }
+
+        select.value = "Master Registrations";
+        loadSheetTable("Master Registrations");
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//fetches a sheet's data from the spreadsheet and renders it as a table
+async function loadSheetTable(sheetName) {
+    const wrapper = document.getElementById("registrationsTableWrapper");
+
+    if (!wrapper) {
+        return;
+    }
+
+    wrapper.innerHTML = "<p>Loading registrations...</p>";
+
+    try {
+        const response = await fetch(
+            SCRIPT_URL +
+            "?getSheetData=true&sheetName=" +
+            encodeURIComponent(sheetName)
+        );
+
+        const data = await response.json();
+
+        if (!data.headers || data.headers.length === 0) {
+            wrapper.innerHTML = "<p>No data found for this sheet.</p>";
+            return;
+        }
+
+        let html = '<table class="sheet-table"><thead><tr>';
+
+        for (let i = 0; i < data.headers.length; i++) {
+            html += "<th>" + data.headers[i] + "</th>";
+        }
+
+        html += "</tr></thead><tbody>";
+
+        if (data.rows.length === 0) {
+            html +=
+                '<tr><td colspan="' + data.headers.length + '">No rows yet.</td></tr>';
+        }
+
+        for (let r = 0; r < data.rows.length; r++) {
+            html += "<tr>";
+
+            for (let c = 0; c < data.rows[r].length; c++) {
+                html += "<td>" + data.rows[r][c] + "</td>";
+            }
+
+            html += "</tr>";
+        }
+
+        html += "</tbody></table>";
+
+        wrapper.innerHTML = html;
+    } catch (error) {
+        console.error(error);
+        wrapper.innerHTML = "<p>Could not load registrations.</p>";
+    }
+}
+
+//downloads the currently viewed sheet as a real .xlsx Excel file
+async function exportSheetToExcel() {
+    const select = document.getElementById("registrationsSheetSelect");
+
+    if (!select || !select.value) {
+        alert("Please select a sheet to export.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            SCRIPT_URL +
+            "?exportExcel=true&sheetName=" +
+            encodeURIComponent(select.value)
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        const byteCharacters = atob(data.base64);
+        const byteNumbers = new Array(byteCharacters.length);
+
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+
+        const blob = new Blob([byteArray], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        });
+
+        const downloadUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+        console.error(error);
+        alert("Could not export to Excel. Check the browser console for details.");
+    }
 }
 
 //loading page while classes load onto screen
@@ -597,30 +755,22 @@ if (document.readyState === "loading") {
     startPage();
 }
 
-setInterval(function(){
-        if (document.getElementById("class catalog")){
-            loadClasses();
-        }
-    
-    if(document.getElementById("existing class")&& !adminSelectedClass){
+//refresh every 30 seconds
+setInterval(function () {
+    if (document.getElementById("classCatalog")) {
+        loadClasses();
+    }
+
+    if (document.getElementById("existingClass") && !adminSelectedClass) {
         loadAdminClasses();
     }
-            },30000);
 
+    const sheetSelect = document.getElementById("registrationsSheetSelect");
 
-
-
-
-////refresh every 30 seconds 
-//setInterval(function () {
-//    if (document.getElementById("classCatalog")) {
-//        loadClasses();
-//    }
-//
-//    if (document.getElementById("existingClass") && !adminSelectedClass) {
-//        loadAdminClasses();
-//    }
-//}, 30000);
+    if (sheetSelect) {
+        loadSheetTable(sheetSelect.value);
+    }
+}, 30000);
 
 async function loadRegistrationsForSelectedClass() {
     const dropdown =

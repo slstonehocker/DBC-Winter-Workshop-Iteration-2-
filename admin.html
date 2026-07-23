@@ -78,7 +78,7 @@
     Select Existing Class
 </label>
 
-<select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option><option value="">Sheridan - Lighting Design</option><option value="{&quot;rowNumber&quot;:3,&quot;branch&quot;:&quot;Sheridan&quot;,&quot;name&quot;:&quot;Irrigation&quot;,&quot;date&quot;:&quot;2026-11-18T07:00:00.000Z&quot;,&quot;time&quot;:&quot;12-4pm&quot;,&quot;description&quot;:&quot;this is a class about irrigation in sheridan&quot;,&quot;address&quot;:&quot;1890 W Hamilton Pl, Sheridan, CO 80110&quot;,&quot;teacher&quot;:&quot;Someone&quot;,&quot;lunch&quot;:&quot;yes&quot;,&quot;capacity&quot;:18,&quot;registered&quot;:0,&quot;seatsLeft&quot;:18}">Sheridan - Irrigation</option><option value="{&quot;rowNumber&quot;:4,&quot;branch&quot;:&quot;Broomfield&quot;,&quot;name&quot;:&quot;Water&quot;,&quot;date&quot;:&quot;2026-08-04T06:00:00.000Z&quot;,&quot;time&quot;:&quot;2026-09-12T06:00:00.000Z&quot;,&quot;description&quot;:&quot;this is a class about water in Broomfield&quot;,&quot;address&quot;:&quot;7250 W 116th Pl, Broomfield, CO 80020&quot;,&quot;teacher&quot;:&quot;An instructor&quot;,&quot;lunch&quot;:&quot;yes&quot;,&quot;capacity&quot;:20,&quot;registered&quot;:0,&quot;seatsLeft&quot;:20}">Broomfield - Water</option></select>
+<select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option></select>
 
   <button type="button" onclick="updateClass()">
     Update Selected Class
@@ -102,8 +102,22 @@
 <button type="button" onclick="removeRegistration()">
     Remove Selected Registration
 </button>
- 
- 
+
+
+    <hr>
+
+    <h2>Registrations</h2>
+
+    <label for="registrationsSheetSelect">View</label>
+    <select id="registrationsSheetSelect" onchange="loadSheetTable(this.value)">
+        <option value="Master Registrations">Master Registrations</option>
+    </select>
+
+    <div id="registrationsTableWrapper" class="table-wrapper">
+        <p>Loading registrations...</p>
+    </div>
+
+    <button type="button" class="small-button" onclick="exportSheetToExcel()">Export to Excel</button>
 
 </div>
 
