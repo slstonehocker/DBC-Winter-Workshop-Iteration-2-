@@ -293,44 +293,55 @@ async function loadAdminClasses() {
     }
 }
 
-//pull classes from google sheet using scripts to show for editing 
+//pull classes from google sheet using scripts to show for editing
 function loadClassForEditing() {
     const existingClassDropdown = document.getElementById("existingClass");
+    const editFieldsContainer = document.getElementById("editFieldsContainer");
 
-    //when there are no classes existing 
+    //when there are no classes existing
     if (!existingClassDropdown || existingClassDropdown.value === "") {
+        adminSelectedClass = null;
+
+        if (editFieldsContainer) {
+            editFieldsContainer.style.display = "none";
+        }
+
         return;
     }
 
     adminSelectedClass = JSON.parse(existingClassDropdown.value);
 
-    document.getElementById("adminBranch").value =
+    document.getElementById("editBranch").value =
         adminSelectedClass.branch || "";
 
-    document.getElementById("adminClass").value =
+    document.getElementById("editClass").value =
         adminSelectedClass.name || "";
 
-    document.getElementById("adminDate").value =
+    document.getElementById("editDate").value =
         formatDisplayDate(adminSelectedClass.date);
 
-    document.getElementById("adminTime").value =
+    document.getElementById("editTime").value =
         adminSelectedClass.time || "";
 
-    document.getElementById("adminDescription").value =
+    document.getElementById("editDescription").value =
         adminSelectedClass.description || "";
 
-    document.getElementById("adminAddress").value =
+    document.getElementById("editAddress").value =
         adminSelectedClass.address || "";
 
-    document.getElementById("adminTeacher").value =
+    document.getElementById("editTeacher").value =
         adminSelectedClass.teacher || "";
 
-    document.getElementById("adminLunch").value =
+    document.getElementById("editLunch").value =
         adminSelectedClass.lunch || "";
 
-    document.getElementById("adminCapacity").value =
+    document.getElementById("editCapacity").value =
         adminSelectedClass.capacity || "";
-    
+
+    if (editFieldsContainer) {
+        editFieldsContainer.style.display = "block";
+    }
+
     loadRegistrationsForSelectedClass();
 }
 
@@ -344,15 +355,15 @@ function updateClass() {
     const updatedClass = {
         type: "updateClass",
         rowNumber: adminSelectedClass.rowNumber,
-        branch: document.getElementById("adminBranch").value.trim(),
-        name: document.getElementById("adminClass").value.trim(),
-        date: document.getElementById("adminDate").value.trim(),
-        time: document.getElementById("adminTime").value.trim(),
-        description: document.getElementById("adminDescription").value.trim(),
-        address: document.getElementById("adminAddress").value.trim(),
-        teacher: document.getElementById("adminTeacher").value.trim(),
-        lunch: document.getElementById("adminLunch").value.trim(),
-        capacity: document.getElementById("adminCapacity").value.trim()
+        branch: document.getElementById("editBranch").value.trim(),
+        name: document.getElementById("editClass").value.trim(),
+        date: document.getElementById("editDate").value.trim(),
+        time: document.getElementById("editTime").value.trim(),
+        description: document.getElementById("editDescription").value.trim(),
+        address: document.getElementById("editAddress").value.trim(),
+        teacher: document.getElementById("editTeacher").value.trim(),
+        lunch: document.getElementById("editLunch").value.trim(),
+        capacity: document.getElementById("editCapacity").value.trim()
     };
 
     fetch(SCRIPT_URL, {
@@ -368,7 +379,7 @@ function updateClass() {
         alert("Class updated.");
 
         adminSelectedClass = null;
-        clearAdminForm();
+        clearEditFields();
 
         const existingClassDropdown = document.getElementById("existingClass");
 
@@ -422,7 +433,7 @@ function deleteClass() {
     });
 
     adminSelectedClass = null;
-    clearAdminForm();
+    clearEditFields();
 
     //re-sync with the sheet a moment later in case anything else changed
     setTimeout(function () {
@@ -483,6 +494,35 @@ function clearAdminForm() {
         if (field) {
             field.value = "";
         }
+    }
+}
+
+//clears and hides the edit-existing-class fields after update/delete
+function clearEditFields() {
+    const fields = [
+        "editBranch",
+        "editClass",
+        "editDate",
+        "editTime",
+        "editDescription",
+        "editAddress",
+        "editTeacher",
+        "editLunch",
+        "editCapacity"
+    ];
+
+    for (let i = 0; i < fields.length; i++) {
+        const field = document.getElementById(fields[i]);
+
+        if (field) {
+            field.value = "";
+        }
+    }
+
+    const editFieldsContainer = document.getElementById("editFieldsContainer");
+
+    if (editFieldsContainer) {
+        editFieldsContainer.style.display = "none";
     }
 }
 
