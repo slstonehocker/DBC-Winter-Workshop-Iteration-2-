@@ -97,8 +97,12 @@
     <div class="email-editor-row">
         <div class="email-editor-fields">
 
-            <label for="emailMessageText">Message</label>
+                       <label for="emailMessageText">Message</label>
             <textarea id="emailMessageText" oninput="updateEmailTemplatePreview()"></textarea>
+
+            <p id="messageOverriddenNotice" style="display:none; text-align:left; font-size:13px; color:#9b0035; font-weight:600; margin-top:8px; margin-bottom:0;">
+                A custom HTML template has been selected for this email. Editing the message here won't change the preview or the actual email. Edit the Custom HTML Template below instead.
+            </p>
 
             <label style="display:flex; align-items:center; gap:8px; margin-top:22px;">
                 <input type="checkbox" id="useCustomTemplate" style="width:auto;" onchange="handleCustomTemplateToggle()">
@@ -119,7 +123,7 @@
         </div>
 
         <div class="email-editor-preview">
-            <h3>Live Preview</h3>
+            <h3>Live Preview. </h3>
             <p class="subtitle" style="text-align:left; font-size:12px; margin-bottom:8px;">
                 Shown with sample placeholder data so you can see the real layout.
             </p>

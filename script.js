@@ -1000,16 +1000,23 @@ function displayCurrentEmailMessage() {
     
 }
 
-//shows/hides the custom template box based on the checkbox
+//shows/hides the custom template box based on the checkbox, and shows a
+//warning under the Message box when the template is active (since the
+//message text no longer affects the preview or the actual email)
 function toggleCustomTemplate() {
     const useTemplateCheckbox = document.getElementById("useCustomTemplate");
     const section = document.getElementById("customTemplateSection");
+    const notice = document.getElementById("messageOverriddenNotice");
 
     if (!useTemplateCheckbox || !section) {
         return;
     }
 
     section.style.display = useTemplateCheckbox.checked ? "block" : "none";
+
+    if (notice) {
+        notice.style.display = useTemplateCheckbox.checked ? "block" : "none";
+    }
 }
 
 //runs when the admin checks/unchecks "Use a full custom HTML template".
