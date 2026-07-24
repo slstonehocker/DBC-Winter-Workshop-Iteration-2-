@@ -6,7 +6,9 @@ let allClasses = [];
 let selectedClassForRegistration = null;
 let adminSelectedClass = null;
 let emailMessages = {};
+let emailTemplates = {};
 let currentEmailMessageKey = "confirmation";
+let currentEmailClassScope = null; // null = Global/Default, else {branch, name}
 
 // class catalog shown on registration page 
 async function loadClasses() {
@@ -235,6 +237,11 @@ function addClass() {
         return;
     }
 
+    if (!isValidFutureDate(date)) {
+        alert("Please enter a valid date (MM/DD/YYYY) that is today or in the future.");
+        return;
+    }
+
     //groups together class info input by the admin throug hadmin page 
     const newClass = {
         type: "class",
@@ -289,9 +296,43 @@ async function loadAdminClasses() {
 
             existingClassDropdown.appendChild(option);
         }
+
+        populateEmailClassSelect();
     } catch (error) {
         console.error(error);
         alert("Could not load admin classes.");
+    }
+}
+
+//populates the "Apply To" dropdown in the Email Messages section with
+//"Global" plus every existing class, so messages/templates can be scoped
+//to one specific class instead of applying everywhere
+function populateEmailClassSelect() {
+    const select = document.getElementById("emailClassSelect");
+
+    if (!select) {
+        return;
+    }
+
+    const previousValue = select.value;
+
+    select.innerHTML = '<option value="">Global (All Classes / Default)</option>';
+
+    for (let i = 0; i < allClasses.length; i++) {
+        const option = document.createElement("option");
+
+        option.value = JSON.stringify({
+            branch: allClasses[i].branch,
+            name: allClasses[i].name
+        });
+
+        option.textContent = allClasses[i].branch + " - " + allClasses[i].name;
+
+        select.appendChild(option);
+    }
+
+    if (previousValue) {
+        select.value = previousValue;
     }
 }
 
@@ -367,6 +408,11 @@ function updateClass() {
         lunch: document.getElementById("editLunch").value.trim(),
         capacity: document.getElementById("editCapacity").value.trim()
     };
+
+    if (!isValidFutureDate(updatedClass.date)) {
+        alert("Please enter a valid date (MM/DD/YYYY) that is today or in the future.");
+        return;
+    }
 
     fetch(SCRIPT_URL, {
         method: "POST",
@@ -552,6 +598,23 @@ function formatDisplayDate(dateString) {
     return month + "/" + day + "/" + year;
 }
 
+//checks that a date string (e.g. "MM/DD/YYYY") parses to a real date
+//that is today or later
+function isValidFutureDate(dateString) {
+    const parsed = new Date(dateString);
+
+    if (isNaN(parsed)) {
+        return false;
+    }
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    parsed.setHours(0, 0, 0, 0);
+
+    return parsed >= today;
+}
+
 //allow search by branch on registration page
 function searchClasses() {
 
@@ -651,8 +714,161 @@ function startPage() {
     loadEmailMessages();
 }
 
-//loads the current (or default) custom email messages, then displays
-//whichever one is selected in the dropdown
+//placeholders available in a custom full-HTML template for each email type
+const EMAIL_PLACEHOLDERS = {
+    confirmation: ["name", "class", "branch", "address", "date", "time", "teacher", "lunch", "description", "spotsReserved", "cancelLink"],
+    waitlist: ["name", "class", "branch", "date", "time", "spotsRequested"],
+    removal: ["name", "class", "branch"],
+    cancellation: ["name", "class", "branch"],
+    update: ["name", "class", "branch", "address", "date", "time", "teacher", "lunch"],
+    classCancelled: ["name", "class", "branch"]
+};
+
+//generates the current built-in layout as a starting point for the custom
+//HTML template box, so the admin edits something real instead of a blank
+//textarea. The blurb text is baked in as plain text since the custom
+//template replaces it entirely once in use.
+const DEFAULT_HTML_TEMPLATES = {
+    confirmation: function (messageText) {
+        return "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n\n" +
+            "<h2 style='color:#b7342b;'>Workshop Registration Confirmed</h2>\n\n" +
+            "<p>Hi {{name}},</p>\n\n" +
+            "<p>" + messageText + "</p>\n\n" +
+            "<p><strong>Class:</strong> {{class}}<br>\n" +
+            "<strong>Branch:</strong> {{branch}}<br>\n" +
+            "<strong>Address:</strong> {{address}}<br>\n" +
+            "<strong>Date:</strong> {{date}}<br>\n" +
+            "<strong>Time:</strong> {{time}}<br>\n" +
+            "<strong>Instructor:</strong> {{teacher}}<br>\n" +
+            "<strong>Lunch Provided:</strong> {{lunch}}<br>\n" +
+            "<strong>Spots Reserved:</strong> {{spotsReserved}}</p>\n\n" +
+            "<p><strong>Description:</strong><br>{{description}}</p>\n\n" +
+            "<p>A calendar file is attached.</p>\n\n" +
+            "<p><a href='{{cancelLink}}' style='background:#9b0035;color:white;padding:12px 18px;text-decoration:none;border-radius:8px;display:inline-block;'>Cancel Registration</a></p>\n\n" +
+            "<br>\n<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0;\">\n\n" +
+            "<div style=\"text-align:center;\">\n" +
+            "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
+            "</div>\n\n" +
+            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Training Portal</p>\n\n" +
+            "</div>";
+    },
+    waitlist: function (messageText) {
+        return "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n\n" +
+            "<h2 style='color:#b7342b;'>You're on the Waitlist</h2>\n\n" +
+            "<p>Hi {{name}},</p>\n\n" +
+            "<p>" + messageText + "</p>\n\n" +
+            "<p><strong>Class:</strong> {{class}}<br>\n" +
+            "<strong>Branch:</strong> {{branch}}<br>\n" +
+            "<strong>Date:</strong> {{date}}<br>\n" +
+            "<strong>Time:</strong> {{time}}<br>\n" +
+            "<strong>Spots Requested:</strong> {{spotsRequested}}</p>\n\n" +
+            "<br>\n<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0;\">\n\n" +
+            "<div style=\"text-align:center;\">\n" +
+            "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
+            "</div>\n\n" +
+            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Training Portal</p>\n\n" +
+            "</div>";
+    },
+    removal: function (messageText) {
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>Workshop Registration Removed</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='font-size:16px; color:#374151; margin:0;'>" + messageText + "</p>\n" +
+            "<br>\n" +
+            "<p style='font-size:16px; color:#374151; margin:0;'>\n" +
+            "<strong>Class:</strong> {{class}}<br>\n" +
+            "<strong>Branch:</strong> {{branch}}\n" +
+            "</p>\n" +
+            "</div>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Thank you.</p>\n\n" +
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
+    },
+    cancellation: function (messageText) {
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>Workshop Registration Cancelled</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='font-size:16px; color:#374151; margin:0;'>Your registration for <strong>{{class}}</strong> at <strong>{{branch}}</strong> has been cancelled.</p>\n" +
+            "</div>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>" + messageText + "</p>\n\n" +
+            "<p style='text-align:center;'>\n" +
+            "<a href='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/' style='background:#9b0035; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; display:inline-block; font-weight:bold;'>View Available Classes</a>\n" +
+            "</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Thank you.</p>\n\n" +
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
+    },
+    update: function (messageText) {
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>Workshop Class Updated</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>" + messageText + "</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='margin:0; font-size:16px; color:#374151;'>\n" +
+            "<strong>Class:</strong> {{class}}<br>\n" +
+            "<strong>Branch:</strong> {{branch}}<br>\n" +
+            "<strong>Date:</strong> {{date}}<br>\n" +
+            "<strong>Time:</strong> {{time}}<br>\n" +
+            "<strong>Instructor:</strong> {{teacher}}<br>\n" +
+            "<strong>Lunch Provided:</strong> {{lunch}}<br>\n" +
+            "<strong>Address:</strong> {{address}}\n" +
+            "</p>\n" +
+            "</div>\n\n" +
+            "<p style='text-align:center;'>\n" +
+            "<a href='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/' style='background:#9b0035; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; display:inline-block; font-weight:bold;'>View Registration Portal</a>\n" +
+            "</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Thank you.</p>\n\n" +
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
+    },
+    classCancelled: function (messageText) {
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>Workshop Cancelled</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>" + messageText + "</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='margin:0; font-size:16px; color:#374151;'>\n" +
+            "<strong>Class:</strong> {{class}}<br>\n" +
+            "<strong>Branch:</strong> {{branch}}\n" +
+            "</p>\n" +
+            "</div>\n\n" +
+            "<p style='text-align:center;'>\n" +
+            "<a href='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/' style='background:#9b0035; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; display:inline-block; font-weight:bold;'>View Available Classes</a>\n" +
+            "</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Thank you.</p>\n\n" +
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
+    }
+};
+
+//builds the "&branch=...&className=..." query suffix for the currently
+//selected class scope, or an empty string when scope is Global
+function getEmailScopeQueryParams() {
+    if (!currentEmailClassScope) {
+        return "";
+    }
+
+    return "&branch=" + encodeURIComponent(currentEmailClassScope.branch) +
+        "&className=" + encodeURIComponent(currentEmailClassScope.name);
+}
+
+//loads the current custom email messages and templates for whichever class
+//scope (Global, or one specific class) is selected, then displays whichever
+//email type is selected in the dropdown
 async function loadEmailMessages() {
     const select = document.getElementById("emailMessageSelect");
 
@@ -661,8 +877,15 @@ async function loadEmailMessages() {
     }
 
     try {
-        const response = await fetch(SCRIPT_URL + "?getEmailMessages=true");
-        emailMessages = await response.json();
+        const scopeParams = getEmailScopeQueryParams();
+
+        const [messagesResponse, templatesResponse] = await Promise.all([
+            fetch(SCRIPT_URL + "?getEmailMessages=true" + scopeParams),
+            fetch(SCRIPT_URL + "?getEmailTemplates=true" + scopeParams)
+        ]);
+
+        emailMessages = await messagesResponse.json();
+        emailTemplates = await templatesResponse.json();
 
         currentEmailMessageKey = select.value || "confirmation";
         displayCurrentEmailMessage();
@@ -671,46 +894,125 @@ async function loadEmailMessages() {
     }
 }
 
-//shows the message text for whichever email is currently selected
+//switches which class the Email Messages section is scoped to (Global, or
+//one specific class), then reloads messages/templates for that scope
+function switchEmailClass(value) {
+    currentEmailClassScope = value ? JSON.parse(value) : null;
+    loadEmailMessages();
+}
+
+//shows the message/template for whichever email is currently selected
 function displayCurrentEmailMessage() {
     const textArea = document.getElementById("emailMessageText");
+    const templateArea = document.getElementById("emailTemplateText");
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
+    const placeholderHint = document.getElementById("emailPlaceholderHint");
 
     if (!textArea) {
         return;
     }
 
     textArea.value = emailMessages[currentEmailMessageKey] || "";
+
+    const currentTemplate = emailTemplates[currentEmailMessageKey] || "";
+
+    templateArea.value = currentTemplate;
+    useTemplateCheckbox.checked = currentTemplate !== "";
+
+    placeholderHint.textContent =
+        (EMAIL_PLACEHOLDERS[currentEmailMessageKey] || [])
+            .map(function (name) { return "{{" + name + "}}"; })
+            .join(", ");
+
+    toggleCustomTemplate();
+}
+
+//shows/hides the custom template box based on the checkbox
+function toggleCustomTemplate() {
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
+    const section = document.getElementById("customTemplateSection");
+
+    if (!useTemplateCheckbox || !section) {
+        return;
+    }
+
+    section.style.display = useTemplateCheckbox.checked ? "block" : "none";
+}
+
+//runs when the admin checks/unchecks "Use a full custom HTML template".
+//If they just checked it and the box is still empty, pre-fill it with the
+//current built-in layout (with the existing message baked in) so they're
+//editing a real starting point instead of a blank textarea.
+function handleCustomTemplateToggle() {
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
+    const templateArea = document.getElementById("emailTemplateText");
+    const messageArea = document.getElementById("emailMessageText");
+
+    if (
+        useTemplateCheckbox && useTemplateCheckbox.checked &&
+        templateArea && !templateArea.value.trim()
+    ) {
+        const generator = DEFAULT_HTML_TEMPLATES[currentEmailMessageKey];
+
+        if (generator) {
+            templateArea.value = generator(messageArea ? messageArea.value : "");
+        }
+    }
+
+    toggleCustomTemplate();
 }
 
 //saves whatever was typed for the email currently being edited into local
 //state, then switches the textarea to show the newly selected email
 function switchEmailMessage(newKey) {
     const textArea = document.getElementById("emailMessageText");
+    const templateArea = document.getElementById("emailTemplateText");
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
 
     if (textArea) {
         emailMessages[currentEmailMessageKey] = textArea.value;
+    }
+
+    if (templateArea && useTemplateCheckbox) {
+        emailTemplates[currentEmailMessageKey] = useTemplateCheckbox.checked ? templateArea.value : "";
     }
 
     currentEmailMessageKey = newKey;
     displayCurrentEmailMessage();
 }
 
-//saves the custom email messages typed into the admin page
+//saves the custom email messages and templates typed into the admin page
 function saveEmailMessages() {
     const textArea = document.getElementById("emailMessageText");
+    const templateArea = document.getElementById("emailTemplateText");
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
 
     if (textArea) {
         emailMessages[currentEmailMessageKey] = textArea.value;
     }
 
+    if (templateArea && useTemplateCheckbox) {
+        emailTemplates[currentEmailMessageKey] = useTemplateCheckbox.checked ? templateArea.value : "";
+    }
+
     const updatedMessages = {
         type: "updateEmailMessages",
+        branch: currentEmailClassScope ? currentEmailClassScope.branch : "",
+        className: currentEmailClassScope ? currentEmailClassScope.name : "",
         confirmation: emailMessages.confirmation || "",
         waitlist: emailMessages.waitlist || "",
         removal: emailMessages.removal || "",
         cancellation: emailMessages.cancellation || "",
         update: emailMessages.update || "",
-        classCancelled: emailMessages.classCancelled || ""
+        classCancelled: emailMessages.classCancelled || "",
+        templates: {
+            confirmation: emailTemplates.confirmation || "",
+            waitlist: emailTemplates.waitlist || "",
+            removal: emailTemplates.removal || "",
+            cancellation: emailTemplates.cancellation || "",
+            update: emailTemplates.update || "",
+            classCancelled: emailTemplates.classCancelled || ""
+        }
     };
 
     fetch(SCRIPT_URL, {

@@ -71,13 +71,18 @@
 
     <hr>
 
-      <hr>
+ <hr>
 
     <h2>Email Messages</h2>
 
     <p class="subtitle" style="text-align:left; font-size:14px; margin-bottom:10px;">
-        Customize the message included in each automated email. Leave as-is to keep the default wording.
+        Customize the message included in each automated email. Choose "Global" to set the default for every class, or pick one class to customize just that class's emails. Switching this dropdown without saving discards any unsaved edits below.
     </p>
+
+    <label for="emailClassSelect">Apply To</label>
+    <select id="emailClassSelect" onchange="switchEmailClass(this.value)">
+        <option value="">Global (All Classes / Default)</option>
+    </select>
 
     <label for="emailMessageSelect">Which Email to Edit</label>
     <select id="emailMessageSelect" onchange="switchEmailMessage(this.value)">
@@ -92,16 +97,29 @@
     <label for="emailMessageText">Message</label>
     <textarea id="emailMessageText"></textarea>
 
+    <label style="display:flex; align-items:center; gap:8px; margin-top:22px;">
+        <input type="checkbox" id="useCustomTemplate" style="width:auto;" onchange="handleCustomTemplateToggle()">
+        Use a full custom HTML template instead of the message above (advanced)
+    </label>
+
+    <div id="customTemplateSection" style="display:none;">
+
+        <p class="subtitle" style="text-align:left; font-size:13px; margin-bottom:10px;">
+            Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically, these placeholders just let you position them in your own layout. WARNING: use caution while editing to make sure no details are accidentally deleted.
+        </p>
+
+        <label for="emailTemplateText">Custom HTML Template</label>
+        <textarea id="emailTemplateText" rows="14"></textarea>
+
+    </div>
+
     <button type="button" onclick="saveEmailMessages()">Save Email Messages</button>
 
     <hr>
-    
-    
- <hr>
     <h2>Edit or Delete Existing Class</h2>
 
    <label for="existingClass">
-    Select Existing Class to be Edited 
+    Select Existing Class
 </label>
 
 <select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option></select>
@@ -160,6 +178,8 @@
     Remove Selected Registration
 </button>
 
+
+    <hr>
 
     <h2>Registrations</h2>
 
