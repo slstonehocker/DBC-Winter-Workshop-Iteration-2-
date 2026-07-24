@@ -83,16 +83,18 @@
     <select id="emailClassSelect" onchange="switchEmailClass(this.value)">
         <option value="">Global (All Classes / Default)</option>
     </select>
-
-    <label for="emailMessageSelect">Which Email to Edit</label>
-    <select id="emailMessageSelect" onchange="switchEmailMessage(this.value)">
-        <option value="confirmation">Confirmation Email</option>
-        <option value="waitlist">Waitlist Email</option>
-        <option value="removal">Registration Removed Email</option>
-        <option value="cancellation">Registration Cancelled Email</option>
-        <option value="update">Class Updated Email</option>
-        <option value="classCancelled">Class Cancelled Email</option>
+    
+ <label for="emailMessageSelect">Which Email to Edit</label>
+    <select id="emailMessageSelect" onChange="switchEmailMessage(this.value)">
+            <option value="confirmation"> Confirmation Email</option>
+            <option value="waitlist">Waitlist Email</option>
+            <option value="removal">Registration Removal Email</option>
+            <option value="cancellation">Registration Cancelled Email</option>
+            <option value="update">Class Updated Email</option>
+            <option value="classCancelled">Class Cancelled Email</option>    
     </select>
+    
+
 
     <div class="email-editor-row">
         <div class="email-editor-fields">
@@ -140,7 +142,10 @@
     Select Existing Class to Edit 
 </label>
 
-<select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option></select>
+<select 
+        id="existingClass" onchange="loadClassForEditing()">
+    <option value="">Select Existing Class</option>
+    </select>
 
 <div id="editFieldsContainer" style="display:none;">
 
@@ -181,9 +186,6 @@
 
 </div>
 
-
-
-
  <h2>Remove Someone From Selected Class</h2>
 
 <label for="registrationToRemove">Select Registration</label>
@@ -195,7 +197,6 @@
 <button type="button" onclick="removeRegistration()">
     Remove Selected Registration
 </button>
-
 
     <hr>
 
