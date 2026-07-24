@@ -709,7 +709,8 @@ function saveEmailMessages() {
         waitlist: emailMessages.waitlist || "",
         removal: emailMessages.removal || "",
         cancellation: emailMessages.cancellation || "",
-        update: emailMessages.update || ""
+        update: emailMessages.update || "",
+        classCancelled: emailMessages.classCancelled || ""
     };
 
     fetch(SCRIPT_URL, {
