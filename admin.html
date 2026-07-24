@@ -94,23 +94,37 @@
         <option value="classCancelled">Class Cancelled Email</option>
     </select>
 
-    <label for="emailMessageText">Message</label>
-    <textarea id="emailMessageText"></textarea>
+    <div class="email-editor-row">
+        <div class="email-editor-fields">
 
-    <label style="display:flex; align-items:center; gap:8px; margin-top:22px;">
-        <input type="checkbox" id="useCustomTemplate" style="width:auto;" onchange="handleCustomTemplateToggle()">
-        Use a full custom HTML template instead of the message above 
-    </label>
+            <label for="emailMessageText">Message</label>
+            <textarea id="emailMessageText" oninput="updateEmailTemplatePreview()"></textarea>
 
-    <div id="customTemplateSection" style="display:none;">
+            <label style="display:flex; align-items:center; gap:8px; margin-top:22px;">
+                <input type="checkbox" id="useCustomTemplate" style="width:auto;" onchange="handleCustomTemplateToggle()">
+                Use a full custom HTML template instead of the message above (advanced)
+            </label>
 
-        <p class="subtitle" style="text-align:left; font-size:13px; margin-bottom:10px;">
-            Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically, these placeholders just let you position them in your own layout. WARNING: use caution while editing to make sure no details are accidentally deleted.
-        </p>
+            <div id="customTemplateSection" style="display:none;">
 
-        <label for="emailTemplateText">Custom HTML Template</label>
-        <textarea id="emailTemplateText" rows="14"></textarea>
+                <p class="subtitle" style="text-align:left; font-size:13px; margin-bottom:10px;">
+                    Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically &mdash; these placeholders just let you position them in your own layout.
+                </p>
 
+                <label for="emailTemplateText">Custom HTML Template</label>
+                <textarea id="emailTemplateText" rows="14" oninput="updateEmailTemplatePreview()"></textarea>
+
+            </div>
+
+        </div>
+
+        <div class="email-editor-preview">
+            <h3>Live Preview</h3>
+            <p class="subtitle" style="text-align:left; font-size:12px; margin-bottom:8px;">
+                Shown with sample placeholder data so you can see the real layout.
+            </p>
+            <iframe id="emailPreviewFrame" class="email-preview-frame" title="Email preview"></iframe>
+        </div>
     </div>
 
     <button type="button" onclick="saveEmailMessages()">Save Email Messages</button>

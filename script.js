@@ -749,7 +749,7 @@ const DEFAULT_HTML_TEMPLATES = {
             "<div style=\"text-align:center;\">\n" +
             "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
             "</div>\n\n" +
-            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Training Portal</p>\n\n" +
+            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Irrigation Supply</p>\n\n" +
             "</div>";
     },
     waitlist: function (messageText) {
@@ -766,7 +766,7 @@ const DEFAULT_HTML_TEMPLATES = {
             "<div style=\"text-align:center;\">\n" +
             "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
             "</div>\n\n" +
-            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Training Portal</p>\n\n" +
+            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Irrigation Supply</p>\n\n" +
             "</div>";
     },
     removal: function (messageText) {
@@ -855,6 +855,68 @@ const DEFAULT_HTML_TEMPLATES = {
     }
 };
 
+//fake but realistic values used to render the live preview, since the
+//actual name/date/etc. are only known at send time
+const EMAIL_PREVIEW_SAMPLE_DATA = {
+    confirmation: {
+        name: "Jane Doe", class: "Lighting Design", branch: "Denver",
+        address: "123 Main St, Denver, CO", date: "8/15/2026", time: "9-11 AM",
+        teacher: "John Smith", lunch: "Yes",
+        description: "Learn the fundamentals of residential and commercial lighting design.",
+        spotsReserved: "1", cancelLink: "#"
+    },
+    waitlist: {
+        name: "Jane Doe", class: "Lighting Design", branch: "Denver",
+        date: "8/15/2026", time: "9-11 AM", spotsRequested: "1"
+    },
+    removal: { name: "Jane Doe", class: "Lighting Design", branch: "Denver" },
+    cancellation: { name: "Jane Doe", class: "Lighting Design", branch: "Denver" },
+    update: {
+        name: "Jane Doe", class: "Lighting Design", branch: "Denver",
+        address: "123 Main St, Denver, CO", date: "8/15/2026", time: "9-11 AM",
+        teacher: "John Smith", lunch: "Yes"
+    },
+    classCancelled: { name: "Jane Doe", class: "Lighting Design", branch: "Denver" }
+};
+
+//replaces {{token}} placeholders in a template with sample preview values
+function renderPreviewTemplate(template, values) {
+    return template.replace(/\{\{(\w+)\}\}/g, function (match, token) {
+        return values[token] !== undefined ? values[token] : match;
+    });
+}
+
+//renders the current message/template (whichever is active) into the live
+//preview iframe using sample placeholder data, so the admin can see what
+//the real email will look like as they type
+function updateEmailTemplatePreview() {
+    const previewFrame = document.getElementById("emailPreviewFrame");
+
+    if (!previewFrame) {
+        return;
+    }
+
+    const messageArea = document.getElementById("emailMessageText");
+    const templateArea = document.getElementById("emailTemplateText");
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
+
+    const messageText = messageArea ? messageArea.value : "";
+
+    let templateHtml;
+
+    if (useTemplateCheckbox && useTemplateCheckbox.checked && templateArea && templateArea.value.trim()) {
+        templateHtml = templateArea.value;
+    } else {
+        const generator = DEFAULT_HTML_TEMPLATES[currentEmailMessageKey];
+        templateHtml = generator ? generator(messageText) : "<p>" + messageText + "</p>";
+    }
+
+    const sampleValues = EMAIL_PREVIEW_SAMPLE_DATA[currentEmailMessageKey] || {};
+
+    previewFrame.srcdoc = renderPreviewTemplate(templateHtml, sampleValues);
+}
+
+
 //builds the "&branch=...&className=..." query suffix for the currently
 //selected class scope, or an empty string when scope is Global
 function getEmailScopeQueryParams() {
@@ -924,7 +986,11 @@ function displayCurrentEmailMessage() {
             .map(function (name) { return "{{" + name + "}}"; })
             .join(", ");
 
-    toggleCustomTemplate();
+    
+    
+  toggleCustomTemplate();
+    updateEmailTemplatePreview();
+    
 }
 
 //shows/hides the custom template box based on the checkbox
@@ -959,7 +1025,8 @@ function handleCustomTemplateToggle() {
         }
     }
 
-    toggleCustomTemplate();
+   toggleCustomTemplate();
+    updateEmailTemplatePreview();
 }
 
 //saves whatever was typed for the email currently being edited into local

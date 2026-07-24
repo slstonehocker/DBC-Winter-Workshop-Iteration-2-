@@ -549,3 +549,43 @@ h1 {
     font-size: 12px !important;
     margin-top: 0 !important;
 }
+
+.email-editor-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+
+.email-editor-fields {
+    flex: 1 1 380px;
+    min-width: 280px;
+}
+
+.email-editor-preview {
+    flex: 1 1 380px;
+    min-width: 280px;
+    position: sticky;
+    top: 20px;
+}
+
+.email-editor-preview h3 {
+    margin: 22px 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.email-preview-frame {
+    width: 100%;
+    height: 560px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+}
+
+@media (max-width: 900px) {
+    .email-editor-row {
+        flex-direction: column;
+    }
+}
