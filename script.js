@@ -946,13 +946,17 @@ async function loadEmailMessages() {
     }
 
     try {
+        //wait for any in-flight save (e.g. the auto-save that just fired on
+        //blur) to actually reach the server before reading fresh data back,
+        //otherwise this can race ahead and show the pre-edit values
+        await lastEmailSaveRequest;
+
         const scopeParams = getEmailScopeQueryParams();
 
         const [messagesResponse, templatesResponse] = await Promise.all([
             fetch(SCRIPT_URL + "?getEmailMessages=true" + scopeParams),
             fetch(SCRIPT_URL + "?getEmailTemplates=true" + scopeParams)
         ]);
-
         emailMessages = await messagesResponse.json();
         emailTemplates = await templatesResponse.json();
 
@@ -1071,20 +1075,10 @@ function switchEmailMessage(newKey) {
 }
 
 //saves the custom email messages and templates typed into the admin page
-function saveEmailMessages() {
-    const textArea = document.getElementById("emailMessageText");
-    const templateArea = document.getElementById("emailTemplateText");
-    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
-
-    if (textArea) {
-        emailMessages[currentEmailMessageKey] = textArea.value;
-    }
-
-    if (templateArea && useTemplateCheckbox) {
-        emailTemplates[currentEmailMessageKey] = useTemplateCheckbox.checked ? templateArea.value : "";
-    }
-
-    const updatedMessages = {
+//builds the payload sent to updateEmailMessages, from whatever is
+//currently held in emailMessages/emailTemplates and the active class scope
+function buildEmailMessagesPayload() {
+    return {
         type: "updateEmailMessages",
         branch: currentEmailClassScope ? currentEmailClassScope.branch : "",
         className: currentEmailClassScope ? currentEmailClassScope.name : "",
@@ -1103,16 +1097,74 @@ function saveEmailMessages() {
             classCancelled: emailTemplates.classCancelled || ""
         }
     };
+}
 
-    fetch(SCRIPT_URL, {
+//saves the custom email messages and templates typed into the admin page
+//tracks the most recent email save request so a follow-up read (e.g.
+//re-loading messages after switching class scope) can wait for it to
+//actually reach the server instead of racing ahead and reading stale data
+let lastEmailSaveRequest = Promise.resolve();
+
+function sendEmailMessagesPayload(payload) {
+    lastEmailSaveRequest = fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify(updatedMessages)
-    });
+        body: JSON.stringify(payload)
+    }).catch(function () {});
 
-    setTimeout(function () {
+    return lastEmailSaveRequest;
+}
+
+//saves the custom email messages and templates typed into the admin page
+function saveEmailMessages() {
+    const textArea = document.getElementById("emailMessageText");
+    const templateArea = document.getElementById("emailTemplateText");
+    const useTemplateCheckbox = document.getElementById("useCustomTemplate");
+
+    if (textArea && !textArea.disabled) {
+        emailMessages[currentEmailMessageKey] = textArea.value;
+    }
+
+    if (templateArea && useTemplateCheckbox) {
+        emailTemplates[currentEmailMessageKey] = useTemplateCheckbox.checked ? templateArea.value : "";
+    }
+
+    sendEmailMessagesPayload(buildEmailMessagesPayload()).then(function () {
         alert("Email messages saved.");
-    }, 1000);
+    });
+}
+
+//automatically saves the plain Message blurb when the admin clicks away
+//from it (as long as a custom template isn't overriding it), showing a
+//quiet "Saved" indicator once the save has actually reached the server
+function autoSaveMessage() {
+    const textArea = document.getElementById("emailMessageText");
+
+    if (!textArea || textArea.disabled) {
+        return;
+    }
+
+    emailMessages[currentEmailMessageKey] = textArea.value;
+
+    sendEmailMessagesPayload(buildEmailMessagesPayload()).then(function () {
+        showAutoSaveIndicator();
+    });
+}
+
+//briefly flashes the "Saved" text next to the Message label
+function showAutoSaveIndicator() {
+    const indicator = document.getElementById("messageAutoSaveIndicator");
+
+    if (!indicator) {
+        return;
+    }
+
+    indicator.style.opacity = "1";
+
+    clearTimeout(showAutoSaveIndicator.hideTimeout);
+    showAutoSaveIndicator.hideTimeout = setTimeout(function () {
+        indicator.style.opacity = "0";
+    }, 2000);
 }
 
 //populates the "View" dropdown on the admin page with every sheet in the

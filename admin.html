@@ -99,9 +99,11 @@
     <div class="email-editor-row">
         <div class="email-editor-fields">
 
-                       <label for="emailMessageText">Message</label>
-            <textarea id="emailMessageText" oninput="updateEmailTemplatePreview()"></textarea>
-
+                                <label for="emailMessageText">
+                Message
+                <span id="messageAutoSaveIndicator" style="opacity:0; transition:opacity 0.3s ease; color:#16a34a; font-size:13px; font-weight:600; margin-left:8px;">Saved</span>
+            </label>
+            <textarea id="emailMessageText" oninput="updateEmailTemplatePreview()" onblur="autoSaveMessage()"></textarea>
             <p id="messageOverriddenNotice" style="display:none; text-align:left; font-size:13px; color:#9b0035; font-weight:600; margin-top:8px; margin-bottom:0;">
                 A custom HTML template has been selected for this email. Editing the message here won't change the preview or the actual email. Edit the Custom HTML Template below instead.
             </p>
@@ -114,10 +116,13 @@
             <div id="customTemplateSection" style="display:none;">
 
                 <p class="subtitle" style="text-align:left; font-size:13px; margin-bottom:10px;">
-                    Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically &mdash; these placeholders just let you position them in your own layout.
+                    Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically, these placeholders just let you position them in your own layout.
                 </p>
 
-                <label for="emailTemplateText">Custom HTML Template</label>
+                                                <div style="display:flex; align-items:center; gap:14px; margin-top:22px; margin-bottom:8px;">
+                    <label for="emailTemplateText" style="margin:0;">Custom HTML Template</label>
+                                       <button type="button" class="template-save-button" onclick="saveEmailMessages()">Save Email Messages</button>
+                </div>
                 <textarea id="emailTemplateText" rows="14" oninput="updateEmailTemplatePreview()"></textarea>
 
             </div>
@@ -133,7 +138,7 @@
         </div>
     </div>
 
-    <button type="button" onclick="saveEmailMessages()">Save Email Messages</button>
+   
 
     <hr>
     <h2>Edit or Delete Existing Class</h2>
