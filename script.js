@@ -5,6 +5,8 @@ const SCRIPT_URL =
 let allClasses = [];
 let selectedClassForRegistration = null;
 let adminSelectedClass = null;
+let emailMessages = {};
+let currentEmailMessageKey = "confirmation";
 
 // class catalog shown on registration page 
 async function loadClasses() {
@@ -346,7 +348,6 @@ function loadClassForEditing() {
 }
 
 //update info on google sheet 
-//update info on google sheet 
 function updateClass() {
     if (!adminSelectedClass) {
         alert("Please select a class to update.");
@@ -398,7 +399,6 @@ function updateClass() {
         }
     }, 1500);
 }
-
 
 //delte a class. remove from class options and google sheet. removes created class tab
 function deleteClass() {
@@ -648,6 +648,79 @@ function startPage() {
     loadClasses();
     loadAdminClasses();
     loadSheetNames();
+    loadEmailMessages();
+}
+
+//loads the current (or default) custom email messages, then displays
+//whichever one is selected in the dropdown
+async function loadEmailMessages() {
+    const select = document.getElementById("emailMessageSelect");
+
+    if (!select) {
+        return;
+    }
+
+    try {
+        const response = await fetch(SCRIPT_URL + "?getEmailMessages=true");
+        emailMessages = await response.json();
+
+        currentEmailMessageKey = select.value || "confirmation";
+        displayCurrentEmailMessage();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//shows the message text for whichever email is currently selected
+function displayCurrentEmailMessage() {
+    const textArea = document.getElementById("emailMessageText");
+
+    if (!textArea) {
+        return;
+    }
+
+    textArea.value = emailMessages[currentEmailMessageKey] || "";
+}
+
+//saves whatever was typed for the email currently being edited into local
+//state, then switches the textarea to show the newly selected email
+function switchEmailMessage(newKey) {
+    const textArea = document.getElementById("emailMessageText");
+
+    if (textArea) {
+        emailMessages[currentEmailMessageKey] = textArea.value;
+    }
+
+    currentEmailMessageKey = newKey;
+    displayCurrentEmailMessage();
+}
+
+//saves the custom email messages typed into the admin page
+function saveEmailMessages() {
+    const textArea = document.getElementById("emailMessageText");
+
+    if (textArea) {
+        emailMessages[currentEmailMessageKey] = textArea.value;
+    }
+
+    const updatedMessages = {
+        type: "updateEmailMessages",
+        confirmation: emailMessages.confirmation || "",
+        waitlist: emailMessages.waitlist || "",
+        removal: emailMessages.removal || "",
+        cancellation: emailMessages.cancellation || "",
+        update: emailMessages.update || ""
+    };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify(updatedMessages)
+    });
+
+    setTimeout(function () {
+        alert("Email messages saved.");
+    }, 1000);
 }
 
 //populates the "View" dropdown on the admin page with every sheet in the

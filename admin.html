@@ -75,7 +75,7 @@
     <h2>Edit or Delete Existing Class</h2>
 
    <label for="existingClass">
-    Select Existing Class to Update
+    Select Existing Class
 </label>
 
 <select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option></select>
@@ -134,6 +134,28 @@
     Remove Selected Registration
 </button>
 
+
+    <hr>
+
+    <h2>Email Messages</h2>
+
+    <p class="subtitle" style="text-align:left; font-size:14px; margin-bottom:10px;">
+        Customize the message included in each automated email. Leave as-is to keep the default wording.
+    </p>
+
+    <label for="emailMessageSelect">Which Email to Edit</label>
+    <select id="emailMessageSelect" onchange="switchEmailMessage(this.value)">
+        <option value="confirmation">Confirmation Email</option>
+        <option value="waitlist">Waitlist Email</option>
+        <option value="removal">Registration Removed Email</option>
+        <option value="cancellation">Registration Cancelled Email</option>
+        <option value="update">Class Updated Email</option>
+    </select>
+
+    <label for="emailMessageText">Message</label>
+    <textarea id="emailMessageText"></textarea>
+
+    <button type="button" onclick="saveEmailMessages()">Save Email Messages</button>
 
     <hr>
 
