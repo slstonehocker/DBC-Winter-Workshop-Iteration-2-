@@ -1003,10 +1003,14 @@ function displayCurrentEmailMessage() {
 //shows/hides the custom template box based on the checkbox, and shows a
 //warning under the Message box when the template is active (since the
 //message text no longer affects the preview or the actual email)
+//shows/hides the custom template box based on the checkbox, shows a warning
+//under the Message box when the template is active, and locks the Message
+//box so it can't be edited while it has no effect on the actual email
 function toggleCustomTemplate() {
     const useTemplateCheckbox = document.getElementById("useCustomTemplate");
     const section = document.getElementById("customTemplateSection");
     const notice = document.getElementById("messageOverriddenNotice");
+    const messageArea = document.getElementById("emailMessageText");
 
     if (!useTemplateCheckbox || !section) {
         return;
@@ -1016,6 +1020,10 @@ function toggleCustomTemplate() {
 
     if (notice) {
         notice.style.display = useTemplateCheckbox.checked ? "block" : "none";
+    }
+
+    if (messageArea) {
+        messageArea.disabled = useTemplateCheckbox.checked;
     }
 }
 
