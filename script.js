@@ -346,6 +346,7 @@ function loadClassForEditing() {
 }
 
 //update info on google sheet 
+//update info on google sheet 
 function updateClass() {
     if (!adminSelectedClass) {
         alert("Please select a class to update.");
@@ -388,8 +389,16 @@ function updateClass() {
         }
 
         loadAdminClasses();
+        loadSheetNames();
+
+        const sheetSelect = document.getElementById("registrationsSheetSelect");
+
+        if (sheetSelect) {
+            loadSheetTable(sheetSelect.value);
+        }
     }, 1500);
 }
+
 
 //delte a class. remove from class options and google sheet. removes created class tab
 function deleteClass() {
