@@ -913,9 +913,16 @@ function updateEmailTemplatePreview() {
 
     const sampleValues = EMAIL_PREVIEW_SAMPLE_DATA[currentEmailMessageKey] || {};
 
-    previewFrame.srcdoc = renderPreviewTemplate(templateHtml, sampleValues);
-}
+    //links (like the Cancel Registration button) are just for show in the
+    //preview, so clicking them shouldn't navigate anywhere
+    const disableLinksScript =
+        "<script>document.addEventListener('click', function (e) {" +
+        "var link = e.target.closest('a'); if (link) { e.preventDefault(); }" +
+        "});<" + "/script>";
 
+    previewFrame.srcdoc =
+        renderPreviewTemplate(templateHtml, sampleValues) + disableLinksScript;
+}
 
 //builds the "&branch=...&className=..." query suffix for the currently
 //selected class scope, or an empty string when scope is Global
