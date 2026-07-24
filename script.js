@@ -30,6 +30,58 @@ async function loadClasses() {
     }
 }
 
+//escapes a value for safe use inside an HTML attribute (just enough to
+//keep a branch name containing a quote from breaking the markup)
+function escapeAttribute(value) {
+    return String(value == null ? "" : value).replace(/"/g, "&quot;");
+}
+
+//builds the class-card markup for one branch's list of classes
+function buildClassCardsHtml(branchClasses) {
+    let html = "";
+
+    for (let j = 0; j < branchClasses.length; j++) {
+        const classItem = branchClasses[j];
+
+        html += `
+            <div class="class-card">
+                <h3>${classItem.name}</h3>
+
+                ${Number(classItem.seatsLeft) <= 0 ? `<div class="waitlist-badge">Full • Waitlist: ${Number(classItem.waitlistCount) || 0}</div>` : ""}
+
+                <p>${classItem.description}</p>
+
+                <p><strong>Date:</strong> ${formatDisplayDate(classItem.date)}</p>
+                <p><strong>Time:</strong> ${classItem.time}</p>
+                <p><strong>Instructor:</strong> ${classItem.teacher}</p>
+
+                <p class="${String(classItem.lunch || "").toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
+                    ${String(classItem.lunch || "").toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
+                </p>
+
+                <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
+
+                <a
+                    class="map-button"
+                    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
+                    target="_blank">
+                    View Branch Map
+                </a>
+
+                <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
+                    Register
+                </button>
+            </div>
+        `;
+    }
+
+    return html;
+}
+
+//which branch's classes are currently shown below the tile grid
+//which branch's classes are currently shown expanded
+let expandedBranch = null;
+
 function displayClassCatalog() {
     const catalog = document.getElementById("classCatalog");
 
@@ -53,13 +105,7 @@ function displayClassCatalog() {
         return;
     }
 
-    let html = "";
-
-    for (let i = 0; i < branches.length; i++) {
-        const branch = branches[i];
-
-        html += `<h2 class="branch-title">${branch}</h2>`;
-
+    const branchGroups = branches.map(function (branch) {
         const branchClasses =
             allClasses
                 .filter(c => (c.branch || "").trim() === branch)
@@ -69,47 +115,73 @@ function displayClassCatalog() {
                     );
                 });
 
-        html += `<div class="branch-grid">`;
+        return {
+            branch: branch,
+            classes: branchClasses,
+            address: (branchClasses[0] && branchClasses[0].address) || ""
+        };
+    });
 
-        for (let j = 0; j < branchClasses.length; j++) {
-            const classItem = branchClasses[j];
+    //the previously expanded branch may have been renamed/deleted since
+    //the last refresh - if so, just collapse
+    if (expandedBranch && !branchGroups.some(function (g) { return g.branch === expandedBranch; })) {
+        expandedBranch = null;
+    }
 
+    let html = "";
+    const expandedGroup = branchGroups.find(function (g) { return g.branch === expandedBranch; });
+
+    if (expandedGroup) {
+        html += `
+            <div class="branch-tile branch-tile-expanded" data-branch="${escapeAttribute(expandedGroup.branch)}">
+                <div class="branch-tile-summary-clickable" onclick="toggleBranchTile(this.closest('.branch-tile').dataset.branch)">
+                    <div class="branch-tile-heading">
+                        <h3>${expandedGroup.branch}</h3>
+                        <span class="branch-tile-arrow">&#9660;</span>
+                    </div>
+                    ${expandedGroup.address ? `<p class="branch-tile-address">${expandedGroup.address}</p>` : ""}
+                    <p class="branch-tile-count">${expandedGroup.classes.length} class${expandedGroup.classes.length === 1 ? "" : "es"} available</p>
+                </div>
+                <div class="branch-grid">
+                    ${buildClassCardsHtml(expandedGroup.classes)}
+                </div>
+            </div>
+        `;
+    }
+
+    const collapsedGroups = branchGroups.filter(function (g) { return g.branch !== expandedBranch; });
+
+    if (collapsedGroups.length > 0) {
+        html += `<div class="branch-tiles">`;
+
+        collapsedGroups.forEach(function (group) {
             html += `
-                <div class="class-card">
-                    <h3>${classItem.name}</h3>
-
-                    ${Number(classItem.seatsLeft) <= 0 ? `<div class="waitlist-badge">Full • Waitlist: ${Number(classItem.waitlistCount) || 0}</div>` : ""}
-
-                    <p>${classItem.description}</p>
-
-                    <p><strong>Date:</strong> ${formatDisplayDate(classItem.date)}</p>
-                    <p><strong>Time:</strong> ${classItem.time}</p>
-                    <p><strong>Instructor:</strong> ${classItem.teacher}</p>
-
-                    <p class="${String(classItem.lunch || "").toLowerCase() === 'yes' ? 'lunch-provided' : 'no-lunch'}">
-                        ${String(classItem.lunch || "").toLowerCase() === 'yes' ? '🍕 Lunch Provided' : '🚫 No Lunch Provided'}
-                    </p>
-
-                    <p><strong>Seats Left:</strong> ${classItem.seatsLeft} of ${classItem.capacity}</p>
-
-                    <a
-                        class="map-button"
-                        href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(classItem.address)}"
-                        target="_blank">
-                        View Branch Map
-                    </a>
-
-                    <button type="button" onclick='openRegistrationModal(${JSON.stringify(classItem)})'>
-                        Register
-                    </button>
+                <div
+                    class="branch-tile"
+                    data-branch="${escapeAttribute(group.branch)}"
+                    onclick="toggleBranchTile(this.dataset.branch)">
+                    <div class="branch-tile-heading">
+                        <h3>${group.branch}</h3>
+                        <span class="branch-tile-arrow">&#9660;</span>
+                    </div>
+                    ${group.address ? `<p class="branch-tile-address">${group.address}</p>` : ""}
+                    <p class="branch-tile-count">${group.classes.length} class${group.classes.length === 1 ? "" : "es"} available</p>
                 </div>
             `;
-        }
+        });
 
         html += `</div>`;
     }
 
     catalog.innerHTML = html;
+}
+
+//expands the clicked branch tile (it becomes a full-width card with its
+//classes nested inside, pushing the other tiles below it), or collapses
+//it if it was already open
+function toggleBranchTile(branch) {
+    expandedBranch = (expandedBranch === branch) ? null : branch;
+    displayClassCatalog();
 }
 
 //pulls up branch class info in block
@@ -409,7 +481,7 @@ function importClassesFromCSV() {
 
         setTimeout(function () {
             alert(
-                "Imported " + importedCount + " class(es). See on google sheet or bottom of this form" +
+                "Imported " + importedCount + " class(es)." +
                 (skippedCount > 0
                     ? " Skipped " + skippedCount + " row(s) with missing/invalid data (Branch, Class Name, Date, and Time are required, and Date must be today or later)."
                     : "")
@@ -422,7 +494,6 @@ function importClassesFromCSV() {
 
     reader.readAsText(fileInput.files[0]);
 }
-
 
 //loads existing classes on admin page to pick from to edit/delte/download
 async function loadAdminClasses() {
@@ -767,43 +838,7 @@ function isValidFutureDate(dateString) {
     return parsed >= today;
 }
 
-//allow search by branch on registration page
-function searchClasses() {
-
-    const searchTerm =
-        document.getElementById("classSearch")
-        .value
-        .toLowerCase()
-        .trim();
-
-    const branchTitles =
-        document.querySelectorAll(".branch-title");
-
-    branchTitles.forEach(function(title) {
-
-        const branchName =
-            title.textContent.toLowerCase();
-
-        const branchGrid =
-            title.nextElementSibling;
-
-        if (
-            searchTerm === "" ||
-            branchName.includes(searchTerm)
-        ) {
-            title.style.display = "";
-            branchGrid.style.display = "grid";
-        }
-        else {
-            title.style.display = "none";
-            branchGrid.style.display = "none";
-        }
-
-    });
-}
-
-
-//filters branches by the selected choice from dropdown 
+//filters branches by the selected choice from dropdown
 function populateBranchFilter() {
     const branchFilter = document.getElementById("branchFilter");
 
@@ -837,24 +872,23 @@ function filterByBranch() {
     const selectedBranch =
         document.getElementById("branchFilter").value;
 
-    const branchTitles =
-        document.querySelectorAll(".branch-title");
+    const branchTiles =
+        document.querySelectorAll(".branch-tile");
 
-    branchTitles.forEach(function(title) {
-        const branchName = title.textContent.trim();
-        const branchGrid = title.nextElementSibling;
+    branchTiles.forEach(function(tile) {
+        const branchName = tile.dataset.branch || "";
 
         if (
             selectedBranch === "" ||
             branchName === selectedBranch
         ) {
-            title.style.display = "";
-            branchGrid.style.display = "grid";
+            tile.style.display = "";
         } else {
-            title.style.display = "none";
-            branchGrid.style.display = "none";
+            tile.style.display = "none";
         }
     });
+
+   
 }
 
 
@@ -882,44 +916,52 @@ const EMAIL_PLACEHOLDERS = {
 //template replaces it entirely once in use.
 const DEFAULT_HTML_TEMPLATES = {
     confirmation: function (messageText) {
-        return "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n\n" +
-            "<h2 style='color:#b7342b;'>Workshop Registration Confirmed</h2>\n\n" +
-            "<p>Hi {{name}},</p>\n\n" +
-            "<p>" + messageText + "</p>\n\n" +
-            "<p><strong>Class:</strong> {{class}}<br>\n" +
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>Workshop Registration Confirmed</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>" + messageText + "</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='margin:0; font-size:16px; color:#374151;'>\n" +
+            "<strong>Class:</strong> {{class}}<br>\n" +
             "<strong>Branch:</strong> {{branch}}<br>\n" +
             "<strong>Address:</strong> {{address}}<br>\n" +
             "<strong>Date:</strong> {{date}}<br>\n" +
             "<strong>Time:</strong> {{time}}<br>\n" +
             "<strong>Instructor:</strong> {{teacher}}<br>\n" +
             "<strong>Lunch Provided:</strong> {{lunch}}<br>\n" +
-            "<strong>Spots Reserved:</strong> {{spotsReserved}}</p>\n\n" +
-            "<p><strong>Description:</strong><br>{{description}}</p>\n\n" +
-            "<p>A calendar file is attached.</p>\n\n" +
-            "<p><a href='{{cancelLink}}' style='background:#9b0035;color:white;padding:12px 18px;text-decoration:none;border-radius:8px;display:inline-block;'>Cancel Registration</a></p>\n\n" +
-            "<br>\n<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0;\">\n\n" +
-            "<div style=\"text-align:center;\">\n" +
-            "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
+            "<strong>Spots Reserved:</strong> {{spotsReserved}}\n" +
+            "</p>\n" +
             "</div>\n\n" +
-            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Irrigation Supply</p>\n\n" +
-            "</div>";
+            "<p style='font-size:16px; color:#374151;'><strong>Description:</strong><br>{{description}}</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>A calendar file is attached.</p>\n\n" +
+            "<p style='text-align:center;'>\n" +
+            "<a href='{{cancelLink}}' style='background:#9b0035; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; display:inline-block; font-weight:bold;'>Cancel Registration</a>\n" +
+            "</p>\n\n" +
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
     },
     waitlist: function (messageText) {
-        return "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n\n" +
-            "<h2 style='color:#b7342b;'>You're on the Waitlist</h2>\n\n" +
-            "<p>Hi {{name}},</p>\n\n" +
-            "<p>" + messageText + "</p>\n\n" +
-            "<p><strong>Class:</strong> {{class}}<br>\n" +
+        return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
+            "<div style='max-width:650px; margin:auto; background:white; padding:35px; border-radius:14px; border:1px solid #e5e7eb;'>\n\n" +
+            "<h1 style='color:#b7342b; text-align:center; margin-top:0;'>You're on the Waitlist</h1>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>Hi {{name}},</p>\n\n" +
+            "<p style='font-size:16px; color:#374151;'>" + messageText + "</p>\n\n" +
+            "<div style='background:#f9f9f9; border-left:6px solid #9b0035; padding:18px; border-radius:8px; margin:25px 0;'>\n" +
+            "<p style='margin:0; font-size:16px; color:#374151;'>\n" +
+            "<strong>Class:</strong> {{class}}<br>\n" +
             "<strong>Branch:</strong> {{branch}}<br>\n" +
             "<strong>Date:</strong> {{date}}<br>\n" +
             "<strong>Time:</strong> {{time}}<br>\n" +
-            "<strong>Spots Requested:</strong> {{spotsRequested}}</p>\n\n" +
-            "<br>\n<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0;\">\n\n" +
-            "<div style=\"text-align:center;\">\n" +
-            "<img src=\"https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png\" alt=\"DBC Logo\" style=\"max-width:180px;height:auto;\">\n" +
+            "<strong>Spots Requested:</strong> {{spotsRequested}}\n" +
+            "</p>\n" +
             "</div>\n\n" +
-            "<p style=\"text-align:center;color:#666;font-size:12px;\">DBC Irrigation Supply</p>\n\n" +
-            "</div>";
+            "<div style='text-align:center; margin-top:30px;'>\n" +
+            "<img src='https://slstonehocker.github.io/DBC-Winter-Workshop-Iteration-2-/dbc-logo.png' alt='DBC Logo' style='max-width:180px; height:auto;'>\n" +
+            "</div>\n\n" +
+            "</div>\n</div>";
     },
     removal: function (messageText) {
         return "<div style='font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;'>\n" +
@@ -1109,6 +1151,7 @@ async function loadEmailMessages() {
             fetch(SCRIPT_URL + "?getEmailMessages=true" + scopeParams),
             fetch(SCRIPT_URL + "?getEmailTemplates=true" + scopeParams)
         ]);
+
         emailMessages = await messagesResponse.json();
         emailTemplates = await templatesResponse.json();
 
@@ -1149,16 +1192,10 @@ function displayCurrentEmailMessage() {
             .map(function (name) { return "{{" + name + "}}"; })
             .join(", ");
 
-    
-    
-  toggleCustomTemplate();
+    toggleCustomTemplate();
     updateEmailTemplatePreview();
-    
 }
 
-//shows/hides the custom template box based on the checkbox, and shows a
-//warning under the Message box when the template is active (since the
-//message text no longer affects the preview or the actual email)
 //shows/hides the custom template box based on the checkbox, shows a warning
 //under the Message box when the template is active, and locks the Message
 //box so it can't be edited while it has no effect on the actual email
@@ -1203,8 +1240,15 @@ function handleCustomTemplateToggle() {
         }
     }
 
-   toggleCustomTemplate();
+    toggleCustomTemplate();
     updateEmailTemplatePreview();
+
+    if (useTemplateCheckbox && !useTemplateCheckbox.checked) {
+        //unchecking hides the Save button along with the template box, so
+        //save the "no template" state right away instead of losing it
+        emailTemplates[currentEmailMessageKey] = "";
+        sendEmailMessagesPayload(buildEmailMessagesPayload());
+    }
 }
 
 //saves whatever was typed for the email currently being edited into local
@@ -1226,7 +1270,6 @@ function switchEmailMessage(newKey) {
     displayCurrentEmailMessage();
 }
 
-//saves the custom email messages and templates typed into the admin page
 //builds the payload sent to updateEmailMessages, from whatever is
 //currently held in emailMessages/emailTemplates and the active class scope
 function buildEmailMessagesPayload() {
@@ -1251,7 +1294,6 @@ function buildEmailMessagesPayload() {
     };
 }
 
-//saves the custom email messages and templates typed into the admin page
 //tracks the most recent email save request so a follow-up read (e.g.
 //re-loading messages after switching class scope) can wait for it to
 //actually reach the server instead of racing ahead and reading stale data

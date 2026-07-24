@@ -20,13 +20,6 @@ body {
     border: 1px solid #d6d6d6;
 }
 
-.classes-box textarea:disabled {
-    background: #f3f4f6;
-    color: #9ca3af;
-    cursor: not-allowed;
-}
-
-
 h1 {
 
     text-align: center;
@@ -84,6 +77,12 @@ h1 {
     font-family: 'Montserrat', sans-serif;
 
     box-sizing: border-box;
+}
+
+.classes-box textarea:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
 }
 
 .classes-box button {
@@ -152,7 +151,7 @@ h1 {
 }
 
 .secondary {
-    font-size: 20;
+    font-size: 20px;
 }
 
 #classDescription {
@@ -185,7 +184,7 @@ h1 {
 
 .class-card button {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 14px;
     padding: 14px;
     background: #9b0035;
     color: white;
@@ -359,9 +358,9 @@ h1 {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    margin-top: 18px;
+    margin-top: 14px;
     padding: 14px;
-    background: #94792D ;
+    background: #a3862a;
     color: white;
     text-align: center;
     text-decoration: none;
@@ -380,11 +379,73 @@ h1 {
     margin: 0 auto 60px auto;
 }
 
-.branch-title {
+.branch-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    align-items: start;
+    gap: 26px;
+    margin-top: 10px;
+}
+
+.branch-tile {
+    background: white;
+    border: 2px solid #d6d6d6;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    padding: 36px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.branch-tile-expanded {
+    cursor: default;
+    border-color: #9b0035;
+    margin-bottom: 26px;
+}
+
+.branch-tile-summary-clickable {
+    cursor: pointer;
+}
+
+.branch-tile-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.branch-tile-heading h3 {
     color: #b7342b;
-    font-size: 35px;
-    margin-top: 45px;
-    margin-bottom: 20px;
+    font-size: 30px;
+    margin: 0;
+}
+
+.branch-tile-arrow {
+    color: #b7342b;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.branch-tile-expanded .branch-tile-arrow {
+    transform: rotate(180deg);
+}
+
+.branch-tile-address {
+    color: #6b7280;
+    font-size: 16px;
+    margin: 12px 0 0 0;
+}
+
+.branch-tile-count {
+    color: #9b0035;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 8px 0 0 0;
+}
+
+.branch-tile-expanded .branch-grid {
+    margin-top: 28px;
 }
 
 .branch-grid {
@@ -411,15 +472,6 @@ h1 {
 .class-card p {
     margin: 12px 0;
     line-height: 1.5;
-}
-
-.class-card button,
-.map-button {
-    margin-top: 14px;
-}
-
-.map-button {
-    background: #a3862a;
 }
 
 .card-actions {
@@ -456,6 +508,7 @@ h1 {
         width: 92%;
     }
 
+    .branch-tiles,
     .branch-grid {
         grid-template-columns: 1fr;
     }
@@ -559,8 +612,8 @@ h1 {
 
 .template-save-button {
     width: auto !important;
-    padding: 8px 18px !important;
-    font-size: 13px !important;
+    padding: 6px 14px !important;
+    font-size: 12px !important;
     margin-top: 0 !important;
     white-space: nowrap;
 }
@@ -569,7 +622,7 @@ h1 {
     width: auto !important;
     padding: 10px 20px !important;
     font-size: 14px !important;
-    margin-top: 0px !important;
+    margin-top: 0 !important;
 }
 
 .email-editor-row {
@@ -610,4 +663,35 @@ h1 {
     .email-editor-row {
         flex-direction: column;
     }
+}
+
+.collapsible-section {
+    margin-top: 20px;
+}
+
+.collapsible-section summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.collapsible-section summary::-webkit-details-marker {
+    display: none;
+}
+
+.collapsible-section summary h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 0;
+}
+
+.collapsible-section summary h2::before {
+    content: "\25B6";
+    font-size: 20px;
+    color: #b7342b;
+    transition: transform 0.2s ease;
+}
+
+.collapsible-section[open] summary h2::before {
+    transform: rotate(90deg);
 }
