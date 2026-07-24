@@ -272,6 +272,158 @@ function addClass() {
     }, 1500);
 }
 
+//parses CSV text (handling quoted fields with commas/newlines) into an
+//array of rows, each row an array of cell strings
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (inQuotes) {
+            if (char === '"') {
+                if (text[i + 1] === '"') {
+                    field += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                field += char;
+            }
+        } else if (char === '"') {
+            inQuotes = true;
+        } else if (char === ",") {
+            row.push(field);
+            field = "";
+        } else if (char === "\n" || char === "\r") {
+            if (char === "\r" && text[i + 1] === "\n") {
+                i++;
+            }
+
+            row.push(field);
+            rows.push(row);
+            row = [];
+            field = "";
+        } else {
+            field += char;
+        }
+    }
+
+    if (field !== "" || row.length > 0) {
+        row.push(field);
+        rows.push(row);
+    }
+
+    return rows.filter(function (r) {
+        return r.some(function (cell) { return cell.trim() !== ""; });
+    });
+}
+
+//reads the chosen CSV file and adds one class per valid row, reusing the
+//same "type: class" POST that the single Add Class form uses
+function importClassesFromCSV() {
+    const fileInput = document.getElementById("classCsvFile");
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please choose a CSV file first.");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+        const rows = parseCSV(event.target.result);
+
+        if (rows.length < 2) {
+            alert("That CSV doesn't have any data rows.");
+            return;
+        }
+
+        const headers = rows[0].map(function (h) {
+            return h.trim().toLowerCase();
+        });
+
+        const columnIndex = {
+            branch: headers.indexOf("branch"),
+            name: headers.indexOf("class name"),
+            date: headers.indexOf("date"),
+            time: headers.indexOf("time"),
+            description: headers.indexOf("description"),
+            teacher: headers.indexOf("instructor"),
+            capacity: headers.indexOf("capacity"),
+            lunch: headers.indexOf("lunch"),
+            address: headers.indexOf("address")
+        };
+
+        if (
+            columnIndex.branch === -1 || columnIndex.name === -1 ||
+            columnIndex.date === -1 || columnIndex.time === -1
+        ) {
+            alert("The CSV must include at least Branch, Class Name, Date, and Time columns.");
+            return;
+        }
+
+        let importedCount = 0;
+        let skippedCount = 0;
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+
+            const branch = (row[columnIndex.branch] || "").trim();
+            const className = (row[columnIndex.name] || "").trim();
+            const date = (row[columnIndex.date] || "").trim();
+            const time = (row[columnIndex.time] || "").trim();
+
+            if (!branch || !className || !date || !time || !isValidFutureDate(date)) {
+                skippedCount++;
+                continue;
+            }
+
+            const newClass = {
+                type: "class",
+                branch: branch,
+                name: className,
+                date: date,
+                time: time,
+                description: columnIndex.description !== -1 ? (row[columnIndex.description] || "").trim() : "",
+                address: columnIndex.address !== -1 ? (row[columnIndex.address] || "").trim() : "",
+                teacher: columnIndex.teacher !== -1 ? (row[columnIndex.teacher] || "").trim() : "",
+                lunch: columnIndex.lunch !== -1 ? (row[columnIndex.lunch] || "").trim() : "",
+                capacity: columnIndex.capacity !== -1 ? (row[columnIndex.capacity] || "").trim() : ""
+            };
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(newClass)
+            });
+
+            importedCount++;
+        }
+
+        fileInput.value = "";
+
+        setTimeout(function () {
+            alert(
+                "Imported " + importedCount + " class(es). See on google sheet or bottom of this form" +
+                (skippedCount > 0
+                    ? " Skipped " + skippedCount + " row(s) with missing/invalid data (Branch, Class Name, Date, and Time are required, and Date must be today or later)."
+                    : "")
+            );
+
+            loadAdminClasses();
+            loadSheetNames();
+        }, 2000);
+    };
+
+    reader.readAsText(fileInput.files[0]);
+}
+
+
 //loads existing classes on admin page to pick from to edit/delte/download
 async function loadAdminClasses() {
     const existingClassDropdown = document.getElementById("existingClass");

@@ -565,6 +565,13 @@ h1 {
     white-space: nowrap;
 }
 
+.csv-import-button {
+    width: auto !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    margin-top: 0px !important;
+}
+
 .email-editor-row {
     display: flex;
     gap: 24px;

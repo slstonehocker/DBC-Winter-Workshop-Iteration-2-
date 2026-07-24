@@ -71,6 +71,20 @@
 
     <hr>
 
+    <h2>Bulk Import Classes (CSV)</h2>
+
+    <p class="subtitle" style="text-align:left; font-size:14px; margin-bottom:10px;">
+        Upload a CSV with columns: <strong>Branch, Class Name, Date, Time, Description, Instructor, Capacity, Lunch, Address</strong> (only Branch, Class Name, Date, and Time are required &mdash; the rest can be left blank). Date must be MM/DD/YYYY and today or later. Rows missing required fields or with an invalid date are skipped.
+    </p>
+
+     <label for="classCsvFile">CSV File</label>
+    <div style="display:flex; align-items:center; gap:14px;">
+        <input type="file" id="classCsvFile" accept=".csv" style="width:auto;">
+        <button type="button" class="csv-import-button" onclick="importClassesFromCSV()">Import Classes from CSV</button>
+    </div>
+
+    <hr>
+
  <hr>
 
     <h2>Email Messages</h2>
@@ -83,45 +97,44 @@
     <select id="emailClassSelect" onchange="switchEmailClass(this.value)">
         <option value="">Global (All Classes / Default)</option>
     </select>
-    
- <label for="emailMessageSelect">Which Email to Edit</label>
-    <select id="emailMessageSelect" onChange="switchEmailMessage(this.value)">
-            <option value="confirmation"> Confirmation Email</option>
-            <option value="waitlist">Waitlist Email</option>
-            <option value="removal">Registration Removal Email</option>
-            <option value="cancellation">Registration Cancelled Email</option>
-            <option value="update">Class Updated Email</option>
-            <option value="classCancelled">Class Cancelled Email</option>    
-    </select>
-    
 
+    <label for="emailMessageSelect">Which Email to Edit</label>
+    <select id="emailMessageSelect" onchange="switchEmailMessage(this.value)">
+        <option value="confirmation">Confirmation Email</option>
+        <option value="waitlist">Waitlist Email</option>
+        <option value="removal">Registration Removed Email</option>
+        <option value="cancellation">Registration Cancelled Email</option>
+        <option value="update">Class Updated Email</option>
+        <option value="classCancelled">Class Cancelled Email</option>
+    </select>
 
     <div class="email-editor-row">
         <div class="email-editor-fields">
 
-                                <label for="emailMessageText">
+            <label for="emailMessageText">
                 Message
                 <span id="messageAutoSaveIndicator" style="opacity:0; transition:opacity 0.3s ease; color:#16a34a; font-size:13px; font-weight:600; margin-left:8px;">Saved</span>
             </label>
             <textarea id="emailMessageText" oninput="updateEmailTemplatePreview()" onblur="autoSaveMessage()"></textarea>
+
             <p id="messageOverriddenNotice" style="display:none; text-align:left; font-size:13px; color:#9b0035; font-weight:600; margin-top:8px; margin-bottom:0;">
-                A custom HTML template has been selected for this email. Editing the message here won't change the preview or the actual email. Edit the Custom HTML Template below instead.
+                A custom HTML template is active for this email. This message was only copied into the template as a starting point &mdash; editing it here won't change the preview or the actual email. Edit the Custom HTML Template below instead.
             </p>
 
             <label style="display:flex; align-items:center; gap:8px; margin-top:22px;">
                 <input type="checkbox" id="useCustomTemplate" style="width:auto;" onchange="handleCustomTemplateToggle()">
-                Use a full custom HTML template instead of the message above
+                Use a full custom HTML template instead of the message above (advanced)
             </label>
 
             <div id="customTemplateSection" style="display:none;">
 
                 <p class="subtitle" style="text-align:left; font-size:13px; margin-bottom:10px;">
-                    Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically, these placeholders just let you position them in your own layout.
+                    Available placeholders for this email: <span id="emailPlaceholderHint"></span>. Anything else (like the calendar attachment or cancel link generation) still happens automatically &mdash; these placeholders just let you position them in your own layout.
                 </p>
 
-                                                <div style="display:flex; align-items:center; gap:14px; margin-top:22px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:14px; margin-top:22px; margin-bottom:8px;">
                     <label for="emailTemplateText" style="margin:0;">Custom HTML Template</label>
-                                       <button type="button" class="template-save-button" onclick="saveEmailMessages()">Save Email Messages</button>
+                    <button type="button" class="template-save-button" onclick="saveEmailMessages()">Save Email Messages</button>
                 </div>
                 <textarea id="emailTemplateText" rows="14" oninput="updateEmailTemplatePreview()"></textarea>
 
@@ -130,7 +143,7 @@
         </div>
 
         <div class="email-editor-preview">
-            <h3>Live Preview. </h3>
+            <h3>Live Preview</h3>
             <p class="subtitle" style="text-align:left; font-size:12px; margin-bottom:8px;">
                 Shown with sample placeholder data so you can see the real layout.
             </p>
@@ -138,19 +151,14 @@
         </div>
     </div>
 
-   
-
     <hr>
     <h2>Edit or Delete Existing Class</h2>
 
    <label for="existingClass">
-    Select Existing Class to Edit 
+    Select Existing Class
 </label>
 
-<select 
-        id="existingClass" onchange="loadClassForEditing()">
-    <option value="">Select Existing Class</option>
-    </select>
+<select id="existingClass" onchange="loadClassForEditing()"><option value="">Select Existing Class</option></select>
 
 <div id="editFieldsContainer" style="display:none;">
 
@@ -191,6 +199,9 @@
 
 </div>
 
+
+
+
  <h2>Remove Someone From Selected Class</h2>
 
 <label for="registrationToRemove">Select Registration</label>
@@ -202,6 +213,7 @@
 <button type="button" onclick="removeRegistration()">
     Remove Selected Registration
 </button>
+
 
     <hr>
 
